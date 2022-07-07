@@ -1,0 +1,31 @@
+﻿>
+>  TEST SCREEN 001
+:              888
+:              666
+>
+>  LABEL:   ¬XXXXXXXXXXXXXXXXXXX
+:           EEEEEEEEEEEEEEEEEEEE
+:           88888888888888888888
+>  FIELD:   ¬XXXXXXXXXXXXXXXXXXX 
+:
+:           2
+>  PASSWD:  ¬*******************
+>  CHECK:   ¬ SUMMER  ¬ WINTER
+>  SELECT:  ¬ YES   ¬ NO
+>           ¬ MAYBE   ¬ NEVER
+>
+>  MESSAGE: ¬XXXXXXXXXXXXXXXXXXX
+>
+>  PF1 Help
+:  +++
+
+¬ROT:20
+¬INP:XXXXXXXXXXXXXXXXXXXX
+¬INP:********************
+¬CHK:
+¬CHK:
+¬SEL:1
+¬SEL:1
+¬SEL:1
+¬SEL:2
+¬MSG:20
