@@ -10,7 +10,7 @@ Anyone who has already developed a modern rich web/desktop/mobile application kn
 
 Developing console-based applications weren't easier either, with the developer having to fine control where to "draw" the screen, where (and when) to capture user input, and so forth. But back in 2004 I had an experience with a development tool for mainframe applications called **CSP** that amazed me for the ability it provided to build an entire screen by literally writing how it would look like in plain text. The concept has been in the back of my head since then and I've even given lots of thought it could be interesting to develop applications for common platforms like that but never actually minded to work on anything like it until now.
 
-<img alt="Sample Terminal screen" src="Resources/coolreads-colours.png" width="879" height="619" align="center"><br/>
+<img alt="Sample Terminal screen" src="Resources/coolreads-colours.png" width="600" text-align="center"><br/>
 
 Thus here is Terminal, a small framework intended to help creating console based applications that could be used either locally (for testing concepts, business logic, personal utilities and so forth) or remotely (through an SSH connection) to an even larger audience. Developing an application using Terminal is good because:
 
