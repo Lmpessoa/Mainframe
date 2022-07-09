@@ -10,15 +10,17 @@ Anyone who has already developed a modern rich web/desktop/mobile application kn
 
 Developing console-based applications weren't easier either, with the developer having to fine control where to "draw" the screen, where (and when) to capture user input, and so forth. But back in 2004 I had an experience with a development tool for mainframe applications called **CSP** that amazed me for the ability it provided to build an entire screen by literally writing how it would look like in plain text. The concept has been in the back of my head since then and I've even given lots of thought it could be interesting to develop applications for common platforms like that but never actually minded to work on anything like it until now.
 
+<img alt="Sample Terminal screen" src="Resources/coolreads-colours.png" width="879" height="619" align="center"><br/>
+
 Thus here is Terminal, a small framework intended to help creating console based applications that could be used either locally (for testing concepts, business logic, personal utilities and so forth) or remotely (through an SSH connection) to an even larger audience. Developing an application using Terminal is good because:
 
 1. It is easier and faster to develop applications (especially for developers) when you can see the exact outcome screens of your software, graphical user interfaces are all about this. It takes almost no code at all to get a screen up and running.
 
-2. Because it has fewer capabilities (in terms of visual) than other UI alternatives, you tend to waste less time and effort to build a functional application with a better looking UI than you can achieve using <code>Console.Write()</code> only, for example (you may try out Miguel de Icasa's [gui.cs](https://github.com/migueldeicaza/gui.cs), it is more visually appealing but more verbose and you still only get to see the resulting screen when you run your application).
+2. Because it has fewer capabilities (in terms of visual) than other UI alternatives, you tend to waste less time and effort to build a functional application with a better looking UI than you can achieve using `Console.Write()` only, for example (you may try out [Miguel de Icasa's **gui.cs**](https://github.com/migueldeicaza/gui.cs), it is more visually appealing but more verbose and you still only get to see the resulting screen when you run your application).
 
 3. Because code behind the UI is simpler/smaller (DLL is currently only 42KB), you need less code to make your applications be usable thus making it easier to identify and handle the security aspects of the application when compared to other applications because there are less points-of-contact to tamper with (but remember: any software is just as secure as you make it; don't go out trying to create the next shell with this and claim I said it would be more secure just because of that).
 
-4. Terminal applications can use any and all functionality provided by the .NET platform, including third-party libraries and communicate with modern remote REST APIs. The same goes for any resource available on your IDE of choice, like step-by-step debugging. The only "requirement" (it is not really enforced) is that you don't mess with the <code>System.Console</code> class during the lifetime of the application.
+4. Terminal applications can use any and all functionality provided by the .NET platform, including third-party libraries and communicate with modern remote REST APIs. The same goes for any resource available on your IDE of choice, like step-by-step debugging. The only "requirement" (it is not really enforced) is that you don't mess with the `System.Console` class during the lifetime of the application.
 
 5. Also, any application can actually be deployed to production and be used by your users and even replace web-based applications (yes, they can) in any context using only SSH.
 
@@ -26,4 +28,4 @@ Thus here is Terminal, a small framework intended to help creating console based
 
 ## Usage
 
-Using the Terminal toolkit is really easy and simple as I outlined. However, I thought it would be best if it was given it's own separate documentation. You can see how to start using the Terminal toolkit [here](https://github.com/Lmpessoa/Terminal/wiki).
+Using the Terminal toolkit is really easy and simple as I outlined. However, I thought it would be best if it was given it's own separate documentation. You can see how to start using the Terminal toolkit [here](/Lmpessoa/Terminal/wiki).

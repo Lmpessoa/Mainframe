@@ -253,7 +253,7 @@ public sealed partial class Application {
             _viewDirty = false;
             Console.CursorLeft = cleft;
             Console.CursorTop = ctop;
-            if (CurrentMap.Fields.Any()) {
+            if (CurrentMap?.Fields.Any() ?? false) {
                Console.CursorVisible = true;
             }
          }
