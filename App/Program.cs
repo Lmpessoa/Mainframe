@@ -20,49 +20,15 @@
  * SOFTWARE.
  */
 
-namespace Lmpessoa.Mainframe;
+global using Lmpessoa.Mainframe;
+using Lmpessoa.Mainframe.Test;
 
-/// <summary>
-/// 
-/// </summary>
-public enum KeyModifier {
-   None = 0,
-   Ctrl = 1,
-   Alt = 2,
-   CtrlAlt = 3,
-   Shift = 4,
-   CtrlShift = 5,
-   AltShift = 6,
-   CtrlAltShift = 7,
-}
+//Application.Run(new LoginMap());
 
-/// <summary>
-/// 
-/// </summary>
-[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-public sealed class CommandKeyAttribute : Attribute {
+Console.Title = "coolreads";
 
-   /// <summary>
-   /// 
-   /// </summary>
-   /// <param name="key"></param>
-   public CommandKeyAttribute(ConsoleKey key):this(KeyModifier.None, key) { }
-
-   /// <summary>
-   /// 
-   /// </summary>
-   /// <param name="modifiers"></param>
-   /// <param name="key"></param>
-   public CommandKeyAttribute(KeyModifier modifiers, ConsoleKey key)
-      => (Modifiers, Key) = (modifiers, key);
-
-   /// <summary>
-   /// 
-   /// </summary>
-   public ConsoleKey Key { get; }
-
-   /// <summary>
-   /// 
-   /// </summary>
-   public KeyModifier Modifiers { get; }
-}
+Application app = new(new BookInfoMap());
+app.UseActiveFieldBackground();
+app.UseCommandColorInBackground(ConsoleColor.Yellow);
+app.UseWindowBorder(WindowBorder.Square);
+app.Run();

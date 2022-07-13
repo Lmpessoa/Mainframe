@@ -19,11 +19,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace Lmpessoa.Terminal;
+namespace Lmpessoa.Mainframe;
 
 /// <summary>
 /// 
@@ -37,29 +38,8 @@ public abstract class Map {
       using Stream? stream = GetType().Assembly.GetManifestResourceStream($"{GetType().FullName}.map");
       if (stream is not null) {
          using StreamReader reader = new(stream);
-         Contents = reader.ReadToEnd().Replace("\r\n", "\n").Split("\n");
+         InitFromContents(reader.ReadToEnd().Replace("\r\n", "\n").Split("\n"));
       }
-      var methods = this.GetType()
-         .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-         .Where(m => m.ReturnType == typeof(void) && m.GetParameters().Length == 0)
-         .Select(m => (m, m.GetCustomAttribute<CommandKeyAttribute>()))
-         .Where(e => e.Item2 is not null);
-      foreach (var (method, attr) in methods) {
-         if (attr is not null) {
-            ConsoleKeyInfo info = new('\0', attr.Key,
-               attr.Modifiers.HasFlag(KeyModifier.Shift),
-               attr.Modifiers.HasFlag(KeyModifier.Alt),
-               attr.Modifiers.HasFlag(KeyModifier.Ctrl));
-            _actions.Add(info, () => method.Invoke(this, Array.Empty<object>()));
-         }
-      }
-   }
-
-   /// <summary>
-   /// 
-   /// </summary>
-   public IEnumerable<string> Contents {
-      init => ContentFragments = ParseContents(value);
    }
 
    /// <summary>
@@ -214,9 +194,13 @@ public abstract class Map {
 
 
 
+   internal Map(string[] contents) {
+      InitFromContents(contents);
+   }
+
    internal Application? Application { get; set; }
 
-   internal IEnumerable<MapFragment> ContentFragments { get; private set; } = Array.Empty<MapFragment>();
+   internal IEnumerable<MapFragment> Fragments { get; private set; } = Array.Empty<MapFragment>();
 
    internal Field? CurrentField
       => CurrentFieldIndex > -1 && CurrentFieldIndex < Fields.Count ? Fields[CurrentFieldIndex] : null;
@@ -322,7 +306,7 @@ public abstract class Map {
       }
    }
 
-   private IEnumerable<MapFragment> ParseContents(IEnumerable<string> source) {
+   private void InitFromContents(IEnumerable<string> source) {
       source = source ?? throw new ArgumentNullException(nameof(source));
       List<Field> fields = source.Where(l => l.Length > 0 && l[0] is '¬')
                              .Select(l => Field.Create(l[1..].Trim()))
@@ -382,7 +366,21 @@ public abstract class Map {
          top += 1;
       }
       Height = top;
-      return result.ToImmutableArray();
+      Fragments = result.ToImmutableArray();
+      var methods = this.GetType()
+         .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+         .Where(m => m.ReturnType == typeof(void) && m.GetParameters().Length == 0)
+         .Select(m => (m, m.GetCustomAttribute<CommandKeyAttribute>()))
+         .Where(e => e.Item2 is not null);
+      foreach (var (method, attr) in methods) {
+         if (attr is not null) {
+            ConsoleKeyInfo info = new('\0', attr.Key,
+               attr.Modifiers.HasFlag(KeyModifier.Shift),
+               attr.Modifiers.HasFlag(KeyModifier.Alt),
+               attr.Modifiers.HasFlag(KeyModifier.Ctrl));
+            _actions.Add(info, () => method.Invoke(this, Array.Empty<object>()));
+         }
+      }
    }
 
    private void SetMessage(string message, MessageKind kind) {

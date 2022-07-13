@@ -19,7 +19,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-namespace Lmpessoa.Terminal;
+
+namespace Lmpessoa.Mainframe;
 
 internal enum MessageKind {
    None,

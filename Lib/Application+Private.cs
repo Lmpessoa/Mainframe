@@ -22,7 +22,7 @@
 
 using System.Diagnostics;
 
-namespace Lmpessoa.Terminal;
+namespace Lmpessoa.Mainframe;
 
 public sealed partial class Application {
 
@@ -200,7 +200,7 @@ public sealed partial class Application {
          }
          ConsoleColor _fore = Console.ForegroundColor;
          ConsoleColor _back = Console.BackgroundColor;
-         foreach (MapFragment fragment in map.ContentFragments) {
+         foreach (MapFragment fragment in map.Fragments) {
             Console.ForegroundColor = (int) fragment.ForegroundColor switch {
                -1 => _fore,
                16 => _colors.CommandForegroundColor,

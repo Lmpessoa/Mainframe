@@ -19,10 +19,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 using System.Collections.Immutable;
 using System.Text.RegularExpressions;
 
-namespace Lmpessoa.Terminal;
+namespace Lmpessoa.Mainframe;
 
 internal sealed class MapFragment {
 

@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-namespace Lmpessoa.Terminal.Tests;
+namespace Lmpessoa.Mainframe.Tests;
 
 [TestClass]
 public class ApplicationEventsTest {
@@ -133,10 +133,8 @@ public class ApplicationEventsTest {
 
       private readonly string _name;
 
-      public TestMap(string name) {
-         _name = name ?? throw new ArgumentNullException(nameof(name));
-         Contents = new string[] { "> ¬ YES   ¬ NO ", "¬SEL:1", "¬SEL:1" };
-      }
+      public TestMap(string name) : base(new string[] { "> ¬ YES   ¬ NO ", "¬SEL:1", "¬SEL:1" })
+         => _name = name ?? throw new ArgumentNullException(nameof(name));
 
       protected override void OnActivating()
          => EventLog.Enqueue($"Activating {_name}");

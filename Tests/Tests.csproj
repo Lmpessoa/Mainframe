@@ -7,7 +7,7 @@
 
     <IsPackable>false</IsPackable>
 
-    <RootNamespace>Lmpessoa.Terminal.Tests</RootNamespace>
+    <RootNamespace>Lmpessoa.Mainframe.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

@@ -22,7 +22,7 @@
 
 using System.Text.RegularExpressions;
 
-namespace Lmpessoa.Terminal;
+namespace Lmpessoa.Mainframe;
 
 /// <summary>
 /// 

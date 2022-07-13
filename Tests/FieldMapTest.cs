@@ -19,16 +19,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-namespace Lmpessoa.Terminal.Tests;
+namespace Lmpessoa.Mainframe.Tests;
 
 [TestClass]
 public sealed class FieldMapTest {
 
    [TestMethod]
    public void TestMoveFocusToField() {
-      Map map = new TestMap {
-         Contents = new string[] { ">  ¬XXXXXXX ", ">  ¬XXXXXXX ", "¬XXXXXXXX", "¬XXXXXXXX" },
-      };
+      Map map = new TestMap(new string[] { ">  ¬XXXXXXX ", ">  ¬XXXXXXX ", "¬XXXXXXXX", "¬XXXXXXXX" });
       Assert.AreEqual(2, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.MoveFocusTo(5, 1);
@@ -39,9 +37,7 @@ public sealed class FieldMapTest {
 
    [TestMethod]
    public void TestMoveFocusToNowhere() {
-      Map map = new TestMap {
-         Contents = new string[] { ">  ¬XXXXXXX ", ">  ¬XXXXXXX ", "¬ROT:8", "¬XXXXXXXX" },
-      };
+      Map map = new TestMap(new string[] { ">  ¬XXXXXXX ", ">  ¬XXXXXXX ", "¬ROT:8", "¬XXXXXXXX" });
       Assert.AreEqual(2, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.MoveFocusTo(4, 1);
@@ -54,9 +50,7 @@ public sealed class FieldMapTest {
 
    [TestMethod]
    public void TestIgnoresMoveFocusNoFields() {
-      Map map = new TestMap {
-         Contents = NO_FIELDS,
-      };
+      Map map = new TestMap(NO_FIELDS);
       Assert.AreEqual(0, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.MoveFocus(1);
@@ -65,9 +59,7 @@ public sealed class FieldMapTest {
 
    [TestMethod]
    public void TestIgnoresMoveFocusNextNoFields() {
-      Map map = new TestMap {
-         Contents = NO_FIELDS,
-      };
+      Map map = new TestMap(NO_FIELDS);
       Assert.AreEqual(0, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.FocusOnNextField();
@@ -76,9 +68,7 @@ public sealed class FieldMapTest {
 
    [TestMethod]
    public void TestIgnoresMoveFocusPrevNoFields() {
-      Map map = new TestMap {
-         Contents = NO_FIELDS,
-      };
+      Map map = new TestMap(NO_FIELDS);
       Assert.AreEqual(0, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.FocusOnPreviousField();
@@ -89,9 +79,7 @@ public sealed class FieldMapTest {
 
    [TestMethod]
    public void TestIgnoresMoveFocusIfNotField() {
-      Map map = new TestMap {
-         Contents = LABEL_ONLY,
-      };
+      Map map = new TestMap(LABEL_ONLY);
       Assert.AreEqual(1, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.MoveFocus(0);
@@ -100,9 +88,7 @@ public sealed class FieldMapTest {
 
    [TestMethod]
    public void TestIgnoresMoveFocusNextIfNotField() {
-      Map map = new TestMap {
-         Contents = LABEL_ONLY,
-      };
+      Map map = new TestMap(LABEL_ONLY);
       Assert.AreEqual(1, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.FocusOnNextField();
@@ -111,9 +97,7 @@ public sealed class FieldMapTest {
 
    [TestMethod]
    public void TestIgnoresMoveFocusPrevIfNotField() {
-      Map map = new TestMap {
-         Contents = LABEL_ONLY,
-      };
+      Map map = new TestMap(LABEL_ONLY);
       Assert.AreEqual(1, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.FocusOnPreviousField();
@@ -124,9 +108,7 @@ public sealed class FieldMapTest {
 
    [TestMethod]
    public void TestMoveFocusToSelfSingleField() {
-      Map map = new TestMap {
-         Contents = SINGLE_FIELD,
-      };
+      Map map = new TestMap(SINGLE_FIELD);
       Assert.AreEqual(1, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.MoveFocus(0);
@@ -135,9 +117,7 @@ public sealed class FieldMapTest {
 
    [TestMethod]
    public void TestIgnoreMoveFocusToNonExistingField() {
-      Map map = new TestMap {
-         Contents = SINGLE_FIELD,
-      };
+      Map map = new TestMap(SINGLE_FIELD);
       Assert.AreEqual(1, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.MoveFocus(2);
@@ -146,9 +126,7 @@ public sealed class FieldMapTest {
 
    [TestMethod]
    public void TestMoveFocusNextToSelfSingleField() {
-      Map map = new TestMap {
-         Contents = SINGLE_FIELD,
-      };
+      Map map = new TestMap(SINGLE_FIELD);
       Assert.AreEqual(1, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.FocusOnNextField();
@@ -157,9 +135,7 @@ public sealed class FieldMapTest {
 
    [TestMethod]
    public void TestMoveFocusPrevToSelfSingleField() {
-      Map map = new TestMap {
-         Contents = SINGLE_FIELD,
-      };
+      Map map = new TestMap(SINGLE_FIELD);
       Assert.AreEqual(1, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.FocusOnPreviousField();
@@ -170,9 +146,7 @@ public sealed class FieldMapTest {
 
    [TestMethod]
    public void TestMoveFocusNextToSelfFieldAndLabel() {
-      Map map = new TestMap {
-         Contents = FIELD_AND_LABEL,
-      };
+      Map map = new TestMap(FIELD_AND_LABEL);
       Assert.AreEqual(2, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.FocusOnNextField();
@@ -181,9 +155,7 @@ public sealed class FieldMapTest {
 
    [TestMethod]
    public void TestMoveFocusPrevToSelfFieldAndLabel() {
-      Map map = new TestMap {
-         Contents = FIELD_AND_LABEL,
-      };
+      Map map = new TestMap(FIELD_AND_LABEL);
       Assert.AreEqual(2, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.FocusOnPreviousField();
@@ -196,9 +168,7 @@ public sealed class FieldMapTest {
 
    [TestMethod]
    public void TestMoveFocusToSameTwoFields() {
-      Map map = new TestMap {
-         Contents = TWO_FIELDS,
-      };
+      Map map = new TestMap(TWO_FIELDS);
       Assert.AreEqual(2, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.MoveFocus(0);
@@ -207,9 +177,7 @@ public sealed class FieldMapTest {
 
    [TestMethod]
    public void TestMoveFocusToExistingField() {
-      Map map = new TestMap {
-         Contents = TWO_FIELDS,
-      };
+      Map map = new TestMap(TWO_FIELDS);
       Assert.AreEqual(2, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.MoveFocus(1);
@@ -218,9 +186,7 @@ public sealed class FieldMapTest {
 
    [TestMethod]
    public void TestIgnoreMoveFocusToNonExistingFieldInSet() {
-      Map map = new TestMap {
-         Contents = TWO_FIELDS,
-      };
+      Map map = new TestMap(TWO_FIELDS);
       Assert.AreEqual(2, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.MoveFocus(2);
@@ -229,9 +195,7 @@ public sealed class FieldMapTest {
 
    [TestMethod]
    public void TestMoveFocusNextTwoFields() {
-      Map map = new TestMap {
-         Contents = TWO_FIELDS,
-      };
+      Map map = new TestMap(TWO_FIELDS);
       Assert.AreEqual(2, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.FocusOnNextField();
@@ -242,9 +206,7 @@ public sealed class FieldMapTest {
 
    [TestMethod]
    public void TestMoveFocusPrevTwoFields() {
-      Map map = new TestMap {
-         Contents = TWO_FIELDS,
-      };
+      Map map = new TestMap(TWO_FIELDS);
       Assert.AreEqual(2, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.FocusOnPreviousField();
@@ -257,9 +219,7 @@ public sealed class FieldMapTest {
 
    [TestMethod]
    public void TestMoveFocusNextThreeFields() {
-      Map map = new TestMap {
-         Contents = THREE_FIELDS,
-      };
+      Map map = new TestMap(THREE_FIELDS);
       Assert.AreEqual(3, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.FocusOnNextField();
@@ -270,9 +230,7 @@ public sealed class FieldMapTest {
 
    [TestMethod]
    public void TestMoveFocusPrevThreeFields() {
-      Map map = new TestMap {
-         Contents = THREE_FIELDS,
-      };
+      Map map = new TestMap(THREE_FIELDS);
       Assert.AreEqual(3, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.FocusOnPreviousField();
@@ -281,9 +239,7 @@ public sealed class FieldMapTest {
 
    [TestMethod]
    public void TestMoveFocusNextSkipsLabel() {
-      Map map = new TestMap {
-         Contents = new string[] { "> ¬XXXXXXX ", "> ¬XXXXXXX ", "> ¬XXXXXXX ", "¬XXXXXXXX", "¬ROT:8", "¬XXXXXXXX" },
-      };
+      Map map = new TestMap(new string[] { "> ¬XXXXXXX ", "> ¬XXXXXXX ", "> ¬XXXXXXX ", "¬XXXXXXXX", "¬ROT:8", "¬XXXXXXXX" });
       Assert.AreEqual(3, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.FocusOnNextField();
@@ -294,14 +250,14 @@ public sealed class FieldMapTest {
 
    [TestMethod]
    public void TestMoveFocusPrevSkipsLabel() {
-      Map map = new TestMap {
-         Contents = new string[] { "> ¬XXXXXXX ", "> ¬XXXXXXX ", "> ¬XXXXXXX ", "¬XXXXXXXX", "¬XXXXXXXX", "¬ROT:8" },
-      };
+      Map map = new TestMap(new string[] { "> ¬XXXXXXX ", "> ¬XXXXXXX ", "> ¬XXXXXXX ", "¬XXXXXXXX", "¬XXXXXXXX", "¬ROT:8" });
       Assert.AreEqual(3, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.FocusOnPreviousField();
       Assert.AreEqual(1, map.CurrentFieldIndex);
    }
 
-   private sealed class TestMap : Map { }
+   private sealed class TestMap : Map {
+      public TestMap(string[] contents) : base(contents) { }
+   }
 }

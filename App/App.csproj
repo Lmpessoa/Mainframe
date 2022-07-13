@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Lmpessoa.Mainframe.Test</RootNamespace>
+    <AssemblyName>TestApp</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="LoginMap.cs" />
+    <Compile Remove="ModalMap.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="BookInfoMap.map" />
+    <None Remove="LoginMap.map" />
+    <None Remove="ModalMap.map" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="BookInfoMap.map" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Lib\Lib.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -4,20 +4,24 @@
     <TargetFramework>net6.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AssemblyName>Lmpessoa.Terminal</AssemblyName>
-    <RootNamespace>Lmpessoa.Terminal</RootNamespace>
+    <AssemblyName>Lmpessoa.Mainframe</AssemblyName>
+    <RootNamespace>Lmpessoa.Mainframe</RootNamespace>
     <PackageProjectUrl>https://www.github.com/Lmpessoa/Terminal</PackageProjectUrl>
     <RepositoryUrl>https://www.github.com/Lmpessoa/Terminal</RepositoryUrl>
     <PackageTags>console;terminal;console-app;terminal-app;</PackageTags>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReadmeFile></PackageReadmeFile>
     <Copyright>Copyright (c) 2022 Leonardo Pessoa</Copyright>
     <Authors>Leonardo Pessoa</Authors>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Description>Terminal is a simple visual user interface toolkit for developing console .NET applications.</Description>
+    <PackageIcon>Package-Icon.png</PackageIcon>
+    <RepositoryType>git</RepositoryType>
+    <GenerateDocumentationFile>False</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\README.md">
+    <None Include="..\Resources\Package-Icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>

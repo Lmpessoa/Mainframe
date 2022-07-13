@@ -20,49 +20,10 @@
  * SOFTWARE.
  */
 
-namespace Lmpessoa.Mainframe;
+namespace Lmpessoa.Mainframe.Test;
 
-/// <summary>
-/// 
-/// </summary>
-public enum KeyModifier {
-   None = 0,
-   Ctrl = 1,
-   Alt = 2,
-   CtrlAlt = 3,
-   Shift = 4,
-   CtrlShift = 5,
-   AltShift = 6,
-   CtrlAltShift = 7,
-}
+internal class BookInfoMap : Map {
 
-/// <summary>
-/// 
-/// </summary>
-[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-public sealed class CommandKeyAttribute : Attribute {
-
-   /// <summary>
-   /// 
-   /// </summary>
-   /// <param name="key"></param>
-   public CommandKeyAttribute(ConsoleKey key):this(KeyModifier.None, key) { }
-
-   /// <summary>
-   /// 
-   /// </summary>
-   /// <param name="modifiers"></param>
-   /// <param name="key"></param>
-   public CommandKeyAttribute(KeyModifier modifiers, ConsoleKey key)
-      => (Modifiers, Key) = (modifiers, key);
-
-   /// <summary>
-   /// 
-   /// </summary>
-   public ConsoleKey Key { get; }
-
-   /// <summary>
-   /// 
-   /// </summary>
-   public KeyModifier Modifiers { get; }
+   [CommandKey(ConsoleKey.F3)]
+   public void DoClose() => Close();
 }

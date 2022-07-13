@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-namespace Lmpessoa.Terminal.Tests;
+namespace Lmpessoa.Mainframe.Tests;
 
 public abstract class ApplicationTest {
 

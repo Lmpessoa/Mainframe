@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-namespace Lmpessoa.Terminal.Tests;
+namespace Lmpessoa.Mainframe.Tests;
 
 [TestClass]
 public class ApplicationKeysTest : ApplicationTest {

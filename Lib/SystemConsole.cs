@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-namespace Lmpessoa.Terminal;
+namespace Lmpessoa.Mainframe;
 
 internal sealed class SystemConsole : IConsole {
 
