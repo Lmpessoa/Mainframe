@@ -254,6 +254,7 @@ public sealed partial class Application {
             Console.CursorLeft = cleft;
             Console.CursorTop = ctop;
             if (CurrentMap?.Fields.Any() ?? false) {
+               map.MoveFocusTo(cleft, ctop);
                Console.CursorVisible = true;
             }
          }

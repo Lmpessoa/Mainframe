@@ -22,8 +22,7 @@
 
 namespace Lmpessoa.Mainframe.Tests;
 
-[TestClass]
-public class ApplicationKeysTest : ApplicationTest {
+public partial class ApplicationTest {
 
    [TestMethod]
    public void TestMovesToFieldWithTab() {
@@ -216,7 +215,7 @@ public class ApplicationKeysTest : ApplicationTest {
 
    [TestMethod]
    public void TestInsertOffPushesText() {
-      ((TextField) Map.CurrentField!).Value = "TEST";
+      Map.CurrentField!.SetValue("TEST");
       DoLoop();
       Assert.IsTrue(App.InsertMode);
       Assert.AreEqual(1, Console.CursorSize);
@@ -231,7 +230,7 @@ public class ApplicationKeysTest : ApplicationTest {
 
    [TestMethod]
    public void TestInsertOnOverwritesText() {
-      ((TextField) Map.CurrentField!).Value = "TEST";
+      Map.CurrentField!.SetValue("TEST");
       DoLoop();
       Assert.IsTrue(App.InsertMode);
       Assert.AreEqual(1, Console.CursorSize);
@@ -257,7 +256,7 @@ public class ApplicationKeysTest : ApplicationTest {
 
    [TestMethod]
    public void TestDeletingFromTextFieldEdges() {
-      ((TextField) Map.CurrentField!).Value = "-TEST-";
+      Map.CurrentField!.SetValue("-TEST-");
       DoLoop();
       MockConsoleInfo info = Console.ReadScreen(11, 4, 8);
       Assert.AreEqual("-TEST-__", info.ScreenText);
@@ -419,14 +418,14 @@ public class ApplicationKeysTest : ApplicationTest {
       DoLoop(2);
       Assert.AreEqual(3, Map.CurrentFieldIndex);
       Assert.AreEqual(6, Console.CursorTop);
-      Assert.IsTrue(Map.Fields[3] is CheckField);
-      CheckField field = (CheckField) Map.Fields[3];
-      Assert.AreEqual("", field.Value);
-      Assert.IsFalse(field.IsChecked);
+      Assert.IsTrue(Map.Fields[3].IsEditable);
+      Assert.AreEqual("/", Map.Fields[3].Mask);
+      Assert.AreEqual("", Map["Summer"]);
+      Assert.IsFalse(Map.Fields[3].IsChecked);
       Console.SendKeys("X");
       DoLoop();
-      Assert.AreEqual("X", field.Value);
-      Assert.IsTrue(field.IsChecked);
+      Assert.AreEqual("X", Map["Summer"]);
+      Assert.IsTrue(Map.Fields[3].IsChecked);
       Assert.AreEqual(4, Map.CurrentFieldIndex);
    }
 
@@ -440,14 +439,14 @@ public class ApplicationKeysTest : ApplicationTest {
       DoLoop(2);
       Assert.AreEqual(3, Map.CurrentFieldIndex);
       Assert.AreEqual(6, Console.CursorTop);
-      Assert.IsTrue(Map.Fields[3] is CheckField);
-      CheckField field = (CheckField) Map.Fields[3];
-      Assert.AreEqual("", field.Value);
-      Assert.IsFalse(field.IsChecked);
+      Assert.IsTrue(Map.Fields[3].IsEditable);
+      Assert.AreEqual("/", Map.Fields[3].Mask);
+      Assert.AreEqual("", Map["Summer"]);
+      Assert.IsFalse(Map.Fields[3].IsChecked);
       Console.SendKeys("/");
       DoLoop();
-      Assert.AreEqual("/", field.Value);
-      Assert.IsTrue(field.IsChecked);
+      Assert.AreEqual("/", Map["Summer"]);
+      Assert.IsTrue(Map.Fields[3].IsChecked);
       Assert.AreEqual(4, Map.CurrentFieldIndex);
    }
 
@@ -460,16 +459,16 @@ public class ApplicationKeysTest : ApplicationTest {
       Console.SendKey(ConsoleKey.DownArrow);
       DoLoop(2);
       Assert.AreEqual(3, Map.CurrentFieldIndex);
-      Assert.IsTrue(Map.Fields[3] is CheckField);
-      CheckField field = (CheckField) Map.Fields[3];
-      field.Value = "X";
+      Assert.IsTrue(Map.Fields[3].IsEditable);
+      Assert.AreEqual("/", Map.Fields[3].Mask);
+      Assert.IsTrue(Map.Fields[3].SetValue("X"));
       Assert.AreEqual(6, Console.CursorTop);
-      Assert.AreEqual("X", field.Value);
-      Assert.IsTrue(field.IsChecked);
+      Assert.AreEqual("X", Map["Summer"]);
+      Assert.IsTrue(Map.Fields[3].IsChecked);
       Console.SendKeys(" ");
       DoLoop();
-      Assert.AreEqual("", field.Value);
-      Assert.IsFalse(field.IsChecked);
+      Assert.AreEqual("", Map["Summer"]);
+      Assert.IsFalse(Map.Fields[3].IsChecked);
       Assert.AreEqual(4, Map.CurrentFieldIndex);
    }
 
@@ -483,26 +482,28 @@ public class ApplicationKeysTest : ApplicationTest {
       DoLoop(2);
       Assert.AreEqual(3, Map.CurrentFieldIndex);
       Assert.AreEqual(6, Console.CursorTop);
-      Assert.IsTrue(Map.Fields[3] is CheckField);
-      CheckField field = (CheckField) Map.Fields[3];
-      Assert.AreEqual("", field.Value);
-      Assert.IsFalse(field.IsChecked);
+      Assert.IsTrue(Map.Fields[3].IsEditable);
+      Assert.AreEqual("/", Map.Fields[3].Mask);
+      Assert.AreEqual("", Map["Summer"]);
+      Assert.IsFalse(Map.Fields[3].IsChecked);
+      Assert.IsFalse(Map.Fields[3].IsDirty);
       Console.SendKeys("A");
       DoLoop();
-      Assert.AreEqual("", field.Value);
-      Assert.IsFalse(field.IsChecked);
+      Assert.AreEqual("", Map["Summer"]);
+      Assert.IsFalse(Map.Fields[3].IsChecked);
+      Assert.IsFalse(Map.Fields[3].IsDirty);
       Assert.AreEqual(3, Map.CurrentFieldIndex);
       Console.SendKeys("-");
       DoLoop();
-      Assert.AreEqual("", field.Value);
-      Assert.IsFalse(field.IsChecked);
+      Assert.AreEqual("", Map["Summer"]);
+      Assert.IsFalse(Map.Fields[3].IsChecked);
+      Assert.IsFalse(Map.Fields[3].IsDirty);
       Assert.AreEqual(3, Map.CurrentFieldIndex);
    }
 
    [TestMethod]
    public void TestPreservingValuesGivenInFields() {
-      Assert.IsTrue(Map.Fields[1] is TextField);
-      TextField field = (TextField) Map.Fields[1];
+      Assert.IsTrue(Map.Fields[1].IsEditable);
       Assert.AreEqual(1, Map.CurrentFieldIndex);
       Console.SendKeys("Some value X");
       Console.SendKey(ConsoleKey.Tab);
@@ -511,11 +512,12 @@ public class ApplicationKeysTest : ApplicationTest {
       }
       MockConsoleInfo info = Console.ReadScreen(11, 4, 14);
       Assert.AreEqual("SOME VALUE X__", info.ScreenText);
-      Assert.AreEqual("SOME VALUE X", field.Value);
+      Assert.AreEqual("SOME VALUE X\t\t\t\t\t\t\t\t", Map.Fields[1].Value);
+      Assert.AreEqual("SOME VALUE X", Map["Field"]);
       App.Stop();
       App.PreserveGivenFieldValues();
       App.Start();
-      field.Value = "";
+      Map.Fields[1].SetValue("");
       Console.SendKey(ConsoleKey.Home);
       Console.SendKeys("Some value X");
       Console.SendKey(ConsoleKey.Tab);
@@ -524,6 +526,7 @@ public class ApplicationKeysTest : ApplicationTest {
       }
       info = Console.ReadScreen(11, 4, 14);
       Assert.AreEqual("Some value X__", info.ScreenText);
-      Assert.AreEqual("Some value X", field.Value);
+      Assert.AreEqual("Some value X\t\t\t\t\t\t\t\t", Map.Fields[1].Value);
+      Assert.AreEqual("Some value X", Map["Field"]);
    }
 }

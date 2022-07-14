@@ -96,7 +96,7 @@ public class ApplicationEventsTest {
       Assert.IsFalse(Application.IsRunning);
       Assert.AreEqual(5, EventLog.Count);
       Assert.AreEqual("Activating Main", EventLog.Dequeue());
-      Assert.AreEqual("Field 0 lost focus on Main", EventLog.Dequeue());
+      Assert.AreEqual("Field OptYes lost focus on Main", EventLog.Dequeue());
       Assert.AreEqual("Closing Main", EventLog.Dequeue());
       Assert.AreEqual("Deactivating Main", EventLog.Dequeue());
       Assert.AreEqual("Closed Main", EventLog.Dequeue());
@@ -133,7 +133,7 @@ public class ApplicationEventsTest {
 
       private readonly string _name;
 
-      public TestMap(string name) : base(new string[] { "> ¬ YES   ¬ NO ", "¬SEL:1", "¬SEL:1" })
+      public TestMap(string name) : base("> ¬ YES   ¬ NO ", "¬OptYes:CHK(1)", "¬OptNo:CHK(1)")
          => _name = name ?? throw new ArgumentNullException(nameof(name));
 
       protected override void OnActivating()
@@ -153,7 +153,7 @@ public class ApplicationEventsTest {
       protected override void OnKeyPressed(ConsoleKeyInfo key)
          => EventLog.Enqueue($"Pressed key {SimplifyKeyInfo(key)} on {_name}");
 
-      protected override void OnLostFocus(Field field)
-         => EventLog.Enqueue($"Field {Fields.IndexOf(field)} lost focus on {_name}");
+      protected override void OnLostFocus(string fieldName)
+         => EventLog.Enqueue($"Field {fieldName} lost focus on {_name}");
    }
 }

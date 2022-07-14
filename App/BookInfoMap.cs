@@ -22,8 +22,37 @@
 
 namespace Lmpessoa.Mainframe.Test;
 
+internal enum BookFormat {
+   Paperback,
+   HardCover,
+   EBook,
+}
+
 internal class BookInfoMap : Map {
 
    [CommandKey(ConsoleKey.F3)]
    public void DoClose() => Close();
+
+   public string Title {
+      get => this["Title"] ?? "";
+      set => this["Title"] = value;
+   }
+
+   public string SortTitle {
+      get => this["SortTitle"] ?? "";
+      set => this["SortTitle"] = value;
+   }
+
+   public BookFormat Format {
+      get {
+         if (this["FormatPaperback"] != "") {
+            return BookFormat.Paperback;
+         } else if (this["FormatHardCover"] != "") {
+            return BookFormat.HardCover;
+         } else if (this["FormatEBook"] != "") {
+            return BookFormat.EBook;
+         }
+         return (BookFormat) (-1);
+      }
+   }
 }

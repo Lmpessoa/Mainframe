@@ -24,49 +24,14 @@ using System.Collections;
 
 namespace Lmpessoa.Mainframe;
 
-/// <summary>
-/// 
-/// </summary>
-public sealed class FieldSet : IEnumerable<Field> {
+internal sealed class FieldSet : IEnumerable<Field> {
 
-   /// <summary>
-   /// 
-   /// </summary>
-   /// <param name="index"></param>
-   /// <returns></returns>
-   public Field this[int index]
-      => _fields[index];
-
-   /// <summary>
-   /// 
-   /// </summary>
-   /// <returns></returns>
    public IEnumerator<Field> GetEnumerator()
       => _fields.GetEnumerator();
 
-   /// <summary>
-   /// 
-   /// </summary>
-   /// <param name="field"></param>
-   /// <returns></returns>
-   public int IndexOf(Field field)
-      => _fields.IndexOf(field);
 
-   /// <summary>
-   /// 
-   /// </summary>
-   /// <param name="index"></param>
-   /// <param name="newIndex"></param>
-   /// <exception cref="ArgumentOutOfRangeException"></exception>
-   public void Move(int index, int newIndex) {
-      if (index < 0 || index >= _fields.Count) {
-         throw new ArgumentOutOfRangeException(nameof(index));
-      }
-      Field field = _fields[index];
-      _fields.Remove(field);
-      _fields.Insert(Math.Min(Math.Max(0, newIndex), _fields.Count), field);
-   }
-
+   internal Field this[int index]
+      => _fields[index];
 
    internal int Count
       => _fields.Count;
@@ -76,6 +41,18 @@ public sealed class FieldSet : IEnumerable<Field> {
 
    internal void Clear() 
       => _fields.Clear();
+
+   internal int IndexOf(Field field)
+      => _fields.IndexOf(field);
+
+   internal void Move(int index, int newIndex) {
+      if (index < 0 || index >= _fields.Count) {
+         throw new ArgumentOutOfRangeException(nameof(index));
+      }
+      Field field = _fields[index];
+      _fields.Remove(field);
+      _fields.Insert(Math.Min(Math.Max(0, newIndex), _fields.Count), field);
+   }
 
 
    private readonly List<Field> _fields = new();

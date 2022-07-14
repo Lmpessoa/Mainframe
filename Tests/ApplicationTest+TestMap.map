@@ -19,13 +19,13 @@
 >  PF1 Help
 :  +++
 
-¬ROT:20
-¬INP:XXXXXXXXXXXXXXXXXXXX
-¬INP:********************
-¬CHK:
-¬CHK:
-¬SEL:1
-¬SEL:1
-¬SEL:1
-¬SEL:2
-¬MSG:20
+¬Label:ROT[20]
+¬Field:INP[20]
+¬Password:PWD[20]
+¬Summer:CHK
+¬Winter:CHK
+¬OptYes:CHK(1)
+¬OptNo:CHK(1)
+¬OptMaybe:CHK(1)
+¬OptNever:CHK(2)
+¬Status:STA[20]

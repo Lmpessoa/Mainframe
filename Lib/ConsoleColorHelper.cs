@@ -65,18 +65,18 @@ internal sealed class ConsoleColorHelper {
       _console.ForegroundColor = field.ForegroundColor ?? fg + (fg > ConsoleColor.Gray ? -8 : 8);
    }
 
-   public void SetMessageColors(StatusMessage field) {
+   public void SetMessageColors(Field field, StatusMessageKind messageKind) {
       ConsoleColor fg = _console.ForegroundColor;
-      ConsoleColor color = field.Kind switch {
-         MessageKind.Success => ConsoleColor.DarkGreen,
-         MessageKind.Alert => ConsoleColor.DarkYellow,
-         MessageKind.Error => ConsoleColor.DarkRed,
+      ConsoleColor color = messageKind switch {
+         StatusMessageKind.Success => ConsoleColor.DarkGreen,
+         StatusMessageKind.Alert => ConsoleColor.DarkYellow,
+         StatusMessageKind.Error => ConsoleColor.DarkRed,
          _ => fg + (fg > ConsoleColor.Gray ? -8 : 8),
       };
-      ConsoleColor altColor = field.Kind switch {
-         MessageKind.Success => ConsoleColor.Green,
-         MessageKind.Alert => ConsoleColor.Yellow,
-         MessageKind.Error => ConsoleColor.Red,
+      ConsoleColor altColor = messageKind switch {
+         StatusMessageKind.Success => ConsoleColor.Green,
+         StatusMessageKind.Alert => ConsoleColor.Yellow,
+         StatusMessageKind.Error => ConsoleColor.Red,
          _ => fg,
       };
       _console.BackgroundColor = field.BackgroundColor ?? DefaultBackgroundColor;

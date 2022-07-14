@@ -55,7 +55,7 @@ public sealed partial class Application {
 
    private void HandleIfKeyPressed() {
       if (Console.KeyAvailable && CurrentMap is Map map) {
-         InputField? field = map.CurrentField as InputField;
+         Field? field = map.CurrentField?.IsEditable ?? false ? map.CurrentField : null;
          ConsoleKeyInfo key = Console.ReadKey();
          switch (SimplifyKeyInfo(key)) {
             case "Tab":
@@ -78,7 +78,7 @@ public sealed partial class Application {
                if (field is not null) {
                   int pos = Console.CursorLeft - field.Left - map.Left;
                   if (pos < field.Width) {
-                     field.SetInnerValue(field.GetInnerValue().Remove(pos, 1));
+                     field.SetValue(field.Value.Remove(pos, 1));
                   }
                }
                break;
@@ -86,7 +86,7 @@ public sealed partial class Application {
                if (field is not null) {
                   int pos = Console.CursorLeft - field.Left - map.Left;
                   if (pos > 0) {
-                     if (field.SetInnerValue(field.GetInnerValue().Remove(pos - 1, 1))) {
+                     if (field.SetValue(field.Value.Remove(pos - 1, 1))) {
                         Console.CursorLeft -= 1;
                      }
                   }
@@ -99,7 +99,7 @@ public sealed partial class Application {
                break;
             case "End":
                if (field is not null) {
-                  Console.CursorLeft = map.Left + field.Left + field.GetInnerValue().TrimEnd('\t').Length;
+                  Console.CursorLeft = map.Left + field.Left + field.Value.TrimEnd('\t').Length;
                }
                break;
             default:
@@ -108,17 +108,18 @@ public sealed partial class Application {
                      || char.IsPunctuation(key.KeyChar)
                      || char.IsSymbol(key.KeyChar))) {
                   if (field is not null) {
-                     string value = field.GetInnerValue();
+                     string value = field.Value;
                      int pos = Console.CursorLeft - field.Left - map.Left;
-                     if (InsertMode && field is not CheckField) {
+                     if (InsertMode && field.Mask != "/") {
                         if (value[^1] != '\t') {
                            break;
                         }
+                        value = value[..^1];
                      } else {
                         value = value.Remove(pos, 1);
                      }
                      value = value.Insert(pos, key.KeyChar.ToString());
-                     if (field.SetInnerValue(value)) {
+                     if (field.SetValue(value)) {
                         Console.CursorLeft += 1;
                         if (Console.CursorLeft >= map.Left + field.Left + field.Width) {
                            map.FocusOnNextField();
@@ -239,31 +240,26 @@ public sealed partial class Application {
                if (!field.IsVisible) {
                   fvalue = new string(' ', field.Width);
                   Console.BackgroundColor = field.BackgroundColor ?? Console.BackgroundColor;
-                  if (field == map.CurrentField) {
-                     map.MoveFocusTo(Console.CursorLeft, Console.CursorTop);
-                  }
-               } else if (field is InputField input) {
+               } else if (field.IsEditable) {
                   _colors.SetFieldColors(field, map.CurrentFieldIndex == map.Fields.IndexOf(field));
-                  fvalue = input.GetInnerValue().Replace('\t', '_');
-                  if (input is TextField text && text.IsPasswordField) {
+                  fvalue = field.Value.Replace('\t', '_');
+                  if (field.Type is FieldType.Protected) {
                      string masked = "";
                      foreach (char ch in fvalue) {
                         masked += ch == '_' ? '_' : _passwordChar;
                      }
                      fvalue = masked;
                   }
-               } else if (field is Label label) {
-                  fvalue = label.Value ?? "";
+               } else {
+                  fvalue = field.Value.Trim('\t');
                   if (fvalue.Length < field.Width) {
                      fvalue += new string(' ', field.Width - fvalue.Length);
                   }
-                  if (field is StatusMessage msg) {
-                     _colors.SetMessageColors(msg);
+                  if (field.IsStatus) {
+                     _colors.SetMessageColors(field, map.StatusKind);
                   } else {
                      _colors.SetLabelColors(field);
                   }
-               } else {
-                  continue;
                }
                if (!PreserveValues && field != map.CurrentField) {
                   fvalue = fvalue.ToUpper();

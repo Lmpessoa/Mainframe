@@ -45,7 +45,14 @@ public abstract class Map {
    /// <summary>
    /// 
    /// </summary>
-   public FieldSet Fields { get; } = new();
+   /// <param name="fieldName"></param>
+   /// <returns></returns>
+   /// <exception cref="ArgumentNullException"></exception>
+   /// <exception cref="ArgumentException"></exception>
+   public string? this[string fieldName] {
+      get => GetField(fieldName)?.Value.Replace('\t', ' ').Trim();
+      set => GetField(fieldName)?.SetValue((value ?? "").Trim());
+   }
 
    /// <summary>
    /// 
@@ -57,8 +64,8 @@ public abstract class Map {
    /// </summary>
    public void ClearMessage() {
       if (_messageField is not null) {
-         _messageField.Kind = MessageKind.None;
-         _messageField.Value = null;
+         StatusKind = StatusMessageKind.None;
+         _messageField.SetValue("");
       }
    }
 
@@ -86,7 +93,7 @@ public abstract class Map {
    /// <param name="fieldIndex"></param>
    public void MoveFocus(int fieldIndex) {
       if (fieldIndex >= 0 && fieldIndex < Fields.Count
-            && Fields[fieldIndex].CanReceiveFocus) {
+            && Fields[fieldIndex].IsFocusable) {
          if (CurrentField is not null) {
             if (Application?.UsesActiveFieldColors ?? false) {
                CurrentField.IsDirty = true;
@@ -108,28 +115,28 @@ public abstract class Map {
    /// </summary>
    /// <param name="message"></param>
    public void SetMessage(string message)
-      => SetMessage(message, MessageKind.Info);
+      => SetMessage(message, StatusMessageKind.Info);
 
    /// <summary>
    /// 
    /// </summary>
    /// <param name="message"></param>
    public void SetSuccess(string message)
-      => SetMessage(message, MessageKind.Success);
+      => SetMessage(message, StatusMessageKind.Success);
 
    /// <summary>
    /// 
    /// </summary>
    /// <param name="message"></param>
    public void SetAlert(string message)
-      => SetMessage(message, MessageKind.Alert);
+      => SetMessage(message, StatusMessageKind.Alert);
 
    /// <summary>
    /// 
    /// </summary>
    /// <param name="message"></param>
    public void SetError(string message)
-      => SetMessage(message, MessageKind.Error);
+      => SetMessage(message, StatusMessageKind.Error);
 
    /// <summary>
    /// 
@@ -190,11 +197,28 @@ public abstract class Map {
    /// 
    /// </summary>
    /// <param name="field"></param>
-   protected virtual void OnLostFocus(Field field) { }
+   protected virtual void OnLostFocus(string fieldName) { }
+
+   /// <summary>
+   /// 
+   /// </summary>
+   /// <param name="fieldName"></param>
+   /// <param name="visible"></param>
+   /// <returns></returns>
+   protected internal bool SetFieldVisible(string fieldName, bool visible) {
+      if (GetField(fieldName) is not Field field) {
+         throw new ArgumentException($"{fieldName} is not defined: ", nameof(fieldName));
+      }
+      if (!field.IsStatus) {
+         field.IsVisible = visible;
+         return true;
+      }
+      return false;
+   }
 
 
 
-   internal Map(string[] contents) {
+   internal Map(params string[] contents) {
       InitFromContents(contents);
    }
 
@@ -209,9 +233,13 @@ public abstract class Map {
 
    internal (int, int) CursorLastPosition { get; set; } = (-1, -1);
 
+   internal FieldSet Fields { get; } = new();
+
    internal int Height { get; private set; }
 
    internal int Left { get; set; }
+
+   internal StatusMessageKind StatusKind = StatusMessageKind.None;
 
    internal int Top { get; set; }
 
@@ -232,41 +260,31 @@ public abstract class Map {
       }
    }
 
-   internal void DidLostFocus(Field field) { 
-      if (!(Application?.PreserveValues ?? false) && field is InputField input 
-            && (field is not TextField text || !text.IsPasswordField)) {
-         input.SetInnerValue(input.GetInnerValue().ToUpper());
+   internal void DidLostFocus(Field field) {
+      if (!(Application?.PreserveValues ?? false) && field.IsFocusable) {
+         field.SetValue(field.Value.ToUpper());
       }
-      OnLostFocus(field);
+      OnLostFocus(field.Name);
    }
 
    internal void MoveFocusTo(int left, int top) {
       Application.SetCursorPosition(left, top);
-      foreach (Field field in Fields) {
-         if (field.CanReceiveFocus && top == field.Top + this.Top
-               && left >= field.Left + this.Left && left <= field.Left + this.Left + field.Width) {
-            int fieldIndex = Fields.IndexOf(field);
-            if (CurrentField != field) {
-               if (CurrentField is not null) {
-                  if (Application?.UsesActiveFieldColors ?? false) {
-                     CurrentField.IsDirty = true;
-                  }
-                  DidLostFocus(CurrentField);
-               }
-               CurrentFieldIndex = fieldIndex;
-               if (CurrentField is not null && (Application?.UsesActiveFieldColors ?? false)) {
-                  CurrentField.IsDirty = true;
-               }
+      Field? next = Fields.FirstOrDefault(f => f.IsFocusable && top == f.Top + Top
+               && left >= f.Left + Left && left <= f.Left + Left + f.Width);
+      int nextIndex = next is not null ? Fields.IndexOf(next) : -1;
+      if (nextIndex != CurrentFieldIndex) {
+         if (CurrentField is not null) {
+            if (Application?.UsesActiveFieldColors ?? false) {
+               CurrentField.IsDirty = true;
             }
-            return;
+            DidLostFocus(CurrentField);
          }
-      }
-      if (CurrentField is not null) {
-         DidLostFocus(CurrentField);
-         if (Application?.UsesActiveFieldColors ?? false) {
-            CurrentField.IsDirty = true;
+         CurrentFieldIndex = nextIndex;
+         if (CurrentField is not null) {
+            if (Application?.UsesActiveFieldColors ?? false) {
+               CurrentField.IsDirty = true;
+            }
          }
-         CurrentFieldIndex = -1;
       }
    }
 
@@ -281,16 +299,16 @@ public abstract class Map {
 
 
 
-   private static ConsoleColor? FromHex(char value) {
+   private static ConsoleColor? ColorForHex(char value) {
       int intval = "0123456789ABCDEF".IndexOf(value, StringComparison.InvariantCultureIgnoreCase);
       return intval is >= 0 and <= 15 ? (ConsoleColor) intval : null;
    }
 
    private readonly Dictionary<ConsoleKeyInfo, Action> _actions = new();
-   private StatusMessage? _messageField = null;
+   private Field? _messageField = null;
 
    private void FocusOnNext(bool reverse) {
-      List<Field> fields = Fields.Where(f => f.CanReceiveFocus).ToList();
+      List<Field> fields = Fields.Where(f => f.IsFocusable).ToList();
       if (!fields.Any()) {
          return;
       }
@@ -306,67 +324,67 @@ public abstract class Map {
       }
    }
 
+   private Field? GetField(string fieldName)
+      => Fields.FirstOrDefault(f => f.Name == fieldName);
+
    private void InitFromContents(IEnumerable<string> source) {
       source = source ?? throw new ArgumentNullException(nameof(source));
-      List<Field> fields = source.Where(l => l.Length > 0 && l[0] is '¬')
-                             .Select(l => Field.Create(l[1..].Trim()))
-                             .ToList();
-      string[] lines = source.Where(l => l.Length > 0 && l[0] is '>' or ':').ToArray();
-      if (!lines.Any()) {
+      string[] fieldLines = source.Where(l => l.Length > 0 && l[0] is '¬').Select(f => f[1..]).ToArray();
+      string[] fragtLines = source.Where(l => l.Length > 0 && l[0] is '>' or ':').ToArray();
+      if (!fragtLines.Any()) {
          throw new ArgumentException("Map has no contents", nameof(source));
       }
-      Width = lines.Max(l => l.Length) - 1;
-      List<MapFragment> result = new();
-      Fields.Clear();
+      Width = fragtLines.Max(l => l.Length) - 1;
+      List<MapFragment> fragments = new();
+      int findex = 0;
       int top = 0;
-      for (int i = 0; i < lines.Length; ++i) {
-         if (lines[i][0] != '>') {
+      for (int i = 0; i < fragtLines.Length; ++i) {
+         if (fragtLines[i][0] != '>') {
             continue;
          }
-         int lwidth = Width - lines[i].Length + 1;
-         string line = lines[i][1..] + (lwidth > 0 ? new string(' ', lwidth) : "");
+         int lwidth = Width - fragtLines[i].Length + 1;
+         string line = fragtLines[i][1..] + (lwidth > 0 ? new string(' ', lwidth) : "");
          string foreMarkup = "";
          string backMarkup = "";
-         if (i + 1 < lines.Length && lines[i + 1][0] == ':') {
-            foreMarkup = lines[i + 1][1..].ToUpper().TrimEnd();
+         if (i + 1 < fragtLines.Length && fragtLines[i + 1][0] == ':') {
+            foreMarkup = fragtLines[i + 1][1..].ToUpper().TrimEnd();
             i += 1;
-            if (i + 1 < lines.Length && lines[i + 1][0] == ':') {
-               backMarkup = lines[i + 1][1..].ToUpper().TrimEnd();
+            if (i + 1 < fragtLines.Length && fragtLines[i + 1][0] == ':') {
+               backMarkup = fragtLines[i + 1][1..].ToUpper().TrimEnd();
                i += 1;
             }
          }
          foreach (Match match in Regex.Matches(line, "¬")) {
-            if (fields.FirstOrDefault() is Field field) {
-               fields.Remove(field);
-               int fieldInField = line.IndexOf('¬', match.Index + 1, field.Width - 1);
-               if (fieldInField != -1) {
-                  throw new InvalidFieldException("Fields overlap", fieldInField, top);
+            if (fieldLines.Length > findex) {
+               if (findex > 0) {
+                  Field prev = Fields[findex - 1];
+                  if (prev.Top == top && match.Index > prev.Left && match.Index < prev.Left + prev.Width) {
+                     throw new InvalidFieldException("Fields overlap", prev.Left, top);
+                  }
+               }
+               Field field = new(this, match.Index, top, fieldLines[findex],
+                  foreMarkup.Length >= match.Index + 1 ? ColorForHex(foreMarkup[match.Index]) : null,
+                  backMarkup.Length >= match.Index + 1 ? ColorForHex(backMarkup[match.Index]) : null);
+               if (Fields.Any(f => f.Name == field.Name)) {
+                  throw new InvalidFieldException($"Duplicate field name {field.Name}", match.Index, top);
                }
                line = line.Remove(match.Index, field.Width)
                           .Insert(match.Index, new string(' ', field.Width));
-               field.Top = top;
-               field.Left = match.Index;
-               field.ForegroundColor = foreMarkup.Length >= match.Index + 1
-                  ? FromHex(foreMarkup[match.Index])
-                  : null;
-               field.BackgroundColor = backMarkup.Length >= match.Index + 1
-                  ? FromHex(backMarkup[match.Index])
-                  : null;
-               field.Owner = Fields;
-               Fields.Add(field);
-               if (field is StatusMessage msg) {
+               if (field.IsStatus) {
                   if (_messageField is not null) {
                      throw new InvalidFieldException("Duplicate status field", field.Left, field.Top);
                   }
-                  _messageField = msg;
+                  _messageField = field;
                }
+               Fields.Add(field);
+               findex += 1;
             }
          }
-         result.AddRange(MapFragment.Parse(line, foreMarkup, backMarkup));
+         fragments.AddRange(MapFragment.Parse(line, foreMarkup, backMarkup));
          top += 1;
       }
       Height = top;
-      Fragments = result.ToImmutableArray();
+      Fragments = fragments.ToImmutableArray();
       var methods = this.GetType()
          .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
          .Where(m => m.ReturnType == typeof(void) && m.GetParameters().Length == 0)
@@ -383,10 +401,10 @@ public abstract class Map {
       }
    }
 
-   private void SetMessage(string message, MessageKind kind) {
+   private void SetMessage(string message, StatusMessageKind kind) {
       if (_messageField is not null) {
-         _messageField.Value = message;
-         _messageField.Kind = kind;
+         _messageField.SetValue(message);
+         StatusKind = kind;
          _messageField.IsDirty = true;
       }
    }

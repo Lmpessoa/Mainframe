@@ -22,33 +22,7 @@
 
 namespace Lmpessoa.Mainframe.Tests;
 
-[TestClass]
-public class ApplicationInitTest : ApplicationTest {
-
-   private Field MockRegister(string args) => new TextField();
-
-   [TestMethod]
-   public void TestFieldRegisterWithoutPrefix() {
-      Assert.ThrowsException<ArgumentNullException>(() => Field.Register(null, MockRegister));
-   }
-
-   [TestMethod]
-   public void TestFieldRegisterWithInvalidPrefix() {
-      Assert.ThrowsException<ArgumentException>(() => Field.Register("de", MockRegister));
-      Assert.ThrowsException<ArgumentException>(() => Field.Register("dext", MockRegister));
-      Assert.ThrowsException<ArgumentException>(() => Field.Register("de1", MockRegister));
-      Assert.ThrowsException<ArgumentException>(() => Field.Register("de-", MockRegister));
-   }
-
-   [TestMethod]
-   public void TestFieldregisterWithDuplicatePrefix() {
-      Assert.ThrowsException<ArgumentException>(() => Field.Register("chk", MockRegister));
-   }
-
-   [TestMethod]
-   public void TestFieldRegisterWithoutCreator() {
-      Assert.ThrowsException<ArgumentNullException>(() => Field.Register("XXX", null));
-   }
+public partial class ApplicationTest {
 
    [TestMethod]
    public void TestApplicationWithNullInitialMap() {

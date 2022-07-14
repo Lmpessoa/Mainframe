@@ -19,14 +19,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 namespace Lmpessoa.Mainframe.Tests;
 
 [TestClass]
-public sealed class FieldMapTest {
+public sealed class MapFieldsTest {
+
+   [TestMethod]
+   public void TestTwoMethodsCannotShareName() {
+      Assert.ThrowsException<InvalidFieldException>(()
+         => new TestMap("> ¬     ¬    ", "¬Field:INP[3]", "¬Field:ROT[3]"));
+   }
 
    [TestMethod]
    public void TestMoveFocusToField() {
-      Map map = new TestMap(new string[] { ">  ¬XXXXXXX ", ">  ¬XXXXXXX ", "¬XXXXXXXX", "¬XXXXXXXX" });
+      Map map = new TestMap(">  ¬XXXXXXX ", ">  ¬XXXXXXX ", "¬Field1:INP[8]", "¬Field2:INP[8]");
       Assert.AreEqual(2, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.MoveFocusTo(5, 1);
@@ -37,7 +44,7 @@ public sealed class FieldMapTest {
 
    [TestMethod]
    public void TestMoveFocusToNowhere() {
-      Map map = new TestMap(new string[] { ">  ¬XXXXXXX ", ">  ¬XXXXXXX ", "¬ROT:8", "¬XXXXXXXX" });
+      Map map = new TestMap(">  ¬XXXXXXX ", ">  ¬XXXXXXX ", "¬Label:ROT[8]", "¬Field:INP[8]");
       Assert.AreEqual(2, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.MoveFocusTo(4, 1);
@@ -75,7 +82,7 @@ public sealed class FieldMapTest {
       Assert.AreEqual(-1, map.CurrentFieldIndex);
    }
 
-   private static readonly string[] LABEL_ONLY = new string[] { ">  ¬XXXXXXX  ", "¬ROT:8" };
+   private static readonly string[] LABEL_ONLY = new string[] { ">  ¬XXXXXXX  ", "¬Label:ROT[8]" };
 
    [TestMethod]
    public void TestIgnoresMoveFocusIfNotField() {
@@ -104,7 +111,7 @@ public sealed class FieldMapTest {
       Assert.AreEqual(-1, map.CurrentFieldIndex);
    }
 
-   private static readonly string[] SINGLE_FIELD = new string[] { ">  ¬XXXXXXX  ", "¬XXXXXXXX" };
+   private static readonly string[] SINGLE_FIELD = new string[] { ">  ¬XXXXXXX  ", "¬Field:INP[8]" };
 
    [TestMethod]
    public void TestMoveFocusToSelfSingleField() {
@@ -142,7 +149,7 @@ public sealed class FieldMapTest {
       Assert.AreEqual(0, map.CurrentFieldIndex);
    }
 
-   private static readonly string[] FIELD_AND_LABEL = new string[] { ">  ¬XXXXXXX ¬XXXXXXX ", "¬XXXXXXXX", "¬ROT:8" };
+   private static readonly string[] FIELD_AND_LABEL = new string[] { ">  ¬XXXXXXX ¬XXXXXXX ", "¬Field:INP[8]", "¬Label:ROT[8]" };
 
    [TestMethod]
    public void TestMoveFocusNextToSelfFieldAndLabel() {
@@ -163,7 +170,7 @@ public sealed class FieldMapTest {
    }
 
    private static readonly string[] TWO_FIELDS = new string[] {
-      "> ¬XXXXXXX ", "> ¬XXXXXXX ", "¬XXXXXXXX", "¬XXXXXXXX",
+      "> ¬XXXXXXX ", "> ¬XXXXXXX ", "¬Field1:INP[8]", "¬Field2:INP[8]",
    };
 
    [TestMethod]
@@ -214,7 +221,7 @@ public sealed class FieldMapTest {
    }
 
    private static readonly string[] THREE_FIELDS = new string[] {
-      "> ¬XXXXXXX ", "> ¬XXXXXXX ", "> ¬XXXXXXX ", "¬XXXXXXXX", "¬XXXXXXXX", "¬XXXXXXXX"
+      "> ¬XXXXXXX ", "> ¬XXXXXXX ", "> ¬XXXXXXX ", "¬Field1:INP[8]", "¬Field2:INP[8]", "¬Field3:INP[8]"
    };
 
    [TestMethod]
@@ -239,7 +246,7 @@ public sealed class FieldMapTest {
 
    [TestMethod]
    public void TestMoveFocusNextSkipsLabel() {
-      Map map = new TestMap(new string[] { "> ¬XXXXXXX ", "> ¬XXXXXXX ", "> ¬XXXXXXX ", "¬XXXXXXXX", "¬ROT:8", "¬XXXXXXXX" });
+      Map map = new TestMap("> ¬XXXXXXX ", "> ¬XXXXXXX ", "> ¬XXXXXXX ", "¬Field1:INP[8]", "¬Label:ROT[8]", "¬Field2:INP[8]");
       Assert.AreEqual(3, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.FocusOnNextField();
@@ -250,14 +257,53 @@ public sealed class FieldMapTest {
 
    [TestMethod]
    public void TestMoveFocusPrevSkipsLabel() {
-      Map map = new TestMap(new string[] { "> ¬XXXXXXX ", "> ¬XXXXXXX ", "> ¬XXXXXXX ", "¬XXXXXXXX", "¬XXXXXXXX", "¬ROT:8" });
+      Map map = new TestMap("> ¬XXXXXXX ", "> ¬XXXXXXX ", "> ¬XXXXXXX ", "¬Field1:INP[8]", "¬Field2:INP[8]", "¬Label:ROT[8]");
       Assert.AreEqual(3, map.Fields.Count);
       Assert.AreEqual(-1, map.CurrentFieldIndex);
       map.FocusOnPreviousField();
       Assert.AreEqual(1, map.CurrentFieldIndex);
    }
 
+   [TestMethod]
+   public void TestFieldWithUnexistingType() {
+      Assert.ThrowsException<InvalidFieldException>(() => new TestMap("> ¬XXXXXXX ", "¬Field:TXT[8]"),
+         "'TXT' is not a valid field type");
+   }
+
+   [TestMethod]
+   public void TestHiddingUndefinedField() {
+      Map map = new TestMap("> ¬XXXXXXX ", "¬Field:INP[8]");
+      Assert.AreEqual(1, map.Fields.Count);
+      Assert.AreEqual("Field", map.Fields[0].Name);
+      Assert.ThrowsException<ArgumentException>(() => map.SetFieldVisible("Label", false),
+         "Label is not defined");
+   }
+
+   [TestMethod]
+   public void TestCheckFieldWithWidth() {
+      Assert.ThrowsException<InvalidFieldException>(() => new TestMap("> ¬XXXXXXX ", "¬Field:CHK[8]"),
+         "Invalid field definition: Field");
+   }
+
+   [TestMethod]
+   public void TestCheckFieldWithMask() {
+      Assert.ThrowsException<InvalidFieldException>(() => new TestMap("> ¬XXXXXXX ", "¬Field:CHK(X)"),
+         "Invalid field definition: Field");
+   }
+
+   [TestMethod]
+   public void TestFieldWithOtherDefinition() {
+      Assert.ThrowsException<InvalidFieldException>(() => new TestMap("> ¬XXXXXXX ", "¬Field:INP{value}"),
+         "Invalid field definition: Field");
+   }
+
+   [TestMethod]
+   public void TestFieldsOverlapping() {
+      Assert.ThrowsException<InvalidFieldException>(() => new TestMap("> ¬XX¬XX ", "¬Field1:INP[6]", "¬Field2:INP[3]"),
+         "Fields overlap");
+   }
+
    private sealed class TestMap : Map {
-      public TestMap(string[] contents) : base(contents) { }
+      public TestMap(params string[] contents) : base(contents) { }
    }
 }

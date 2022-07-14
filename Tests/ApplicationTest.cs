@@ -22,13 +22,14 @@
 
 namespace Lmpessoa.Mainframe.Tests;
 
-public abstract class ApplicationTest {
+[TestClass]
+public partial class ApplicationTest {
 
    [TestInitialize]
    public void Setup() {
       Console = new MockConsole();
       Console.SetWindowSize(80, 24);
-      Map = new TestMap();
+      Map = new();
       App = new(Map, Console);
       App.Start();
       DoLoop();
