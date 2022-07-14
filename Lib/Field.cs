@@ -24,10 +24,13 @@ using System.Text.RegularExpressions;
 
 namespace Lmpessoa.Mainframe;
 
-internal enum FieldType {
-   Protected,
-   Editable,
-   ReadOnly,
+[Flags]
+internal enum FieldType : byte {
+   None = 0,
+   Editable = 1,
+   Focusable = 2,
+   Protected = 4,
+   Status = 0x80,
 }
 
 internal sealed class Field {
@@ -50,17 +53,16 @@ internal sealed class Field {
       BackgroundColor = bgcolor;
       ForegroundColor = fgcolor;
       Type = type switch {
-         "PWD" => FieldType.Protected,
-         "INP" => FieldType.Editable,
-         "CHK" => FieldType.Editable,
-         "ROT" => FieldType.ReadOnly,
-         "STA" => FieldType.ReadOnly,
+         "PWD" => FieldType.Editable | FieldType.Focusable | FieldType.Protected,
+         "INP" => FieldType.Editable | FieldType.Focusable,
+         "CHK" => FieldType.Editable | FieldType.Focusable,
+         "ROT" => FieldType.None,
+         "STA" => FieldType.Status,
          _ => throw new InvalidFieldException($"'{type}' is not a valid field type", left, top),
       };
       Width = args.Length == 0 || type == "CHK" ? 1
-         : args[0] == '[' ? int.Parse(args[1..^1]) 
+         : args[0] == '[' ? int.Parse(args[1..^1])
          : args.Length - 2;
-      IsStatus = type is "STA";
       Mask = type switch {
          "INP" => args[0] == '(' ? args[1..^1] : null,
          "CHK" => "/",
@@ -84,15 +86,19 @@ internal sealed class Field {
    internal bool IsDirty { get; set; } = false;
 
    internal bool IsEditable
-      => Type is FieldType.Protected or FieldType.Editable;
+      => Type.HasFlag(FieldType.Editable);
 
    internal bool IsFocusable
-      => Type is not FieldType.ReadOnly && IsVisible;
+      => Type.HasFlag(FieldType.Focusable) && IsVisible;
+
+   internal bool IsProtected
+      => Type.HasFlag(FieldType.Protected);
 
    internal bool IsReadOnly
-      => Type is FieldType.ReadOnly;
+      => !Type.HasFlag(FieldType.Editable);
 
-   internal bool IsStatus { get; init; }
+   internal bool IsStatus
+      => Type.HasFlag(FieldType.Status);
 
    internal bool IsVisible {
       get => _visible;
@@ -114,12 +120,13 @@ internal sealed class Field {
 
    internal int Top { get; init; }
 
-   internal FieldType Type { get; init; }
-
    internal string Value
       => _value;
 
    internal int Width { get; init; }
+
+   internal bool HasCursor(int left, int top)
+      => left >= Parent.Left + Left && left  <= Parent.Left + Left + Width + 1 && top == Parent.Top + Top;
 
    internal bool SetValue(string value) {
       value ??= "";
@@ -140,6 +147,8 @@ internal sealed class Field {
 
    private string _value = "";
    private bool _visible = true;
+
+   private FieldType Type { get; init; }
 
    private bool AcceptsValue(string value) {
       value = value ?? throw new ArgumentNullException(nameof(value));

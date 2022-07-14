@@ -46,7 +46,7 @@ public partial class ApplicationTest {
 
       Console.SendKey(ConsoleKey.LeftArrow);
       DoLoop();
-      Assert.AreEqual(-1, Map.CurrentFieldIndex);
+      Assert.AreEqual(1, Map.CurrentFieldIndex);
 
       Console.SendKey(ConsoleKey.RightArrow);
       DoLoop();
@@ -61,25 +61,17 @@ public partial class ApplicationTest {
       DoLoop();
       Assert.AreEqual(1, Map.CurrentFieldIndex);
       MockConsoleInfo info = Console.ReadScreen(11, 4, 5);
-      Assert.AreEqual("_____", info.ScreenText);
-      Assert.AreEqual("FFFFF", info.Foreground);
-      Assert.AreEqual("88888", info.Background);
+      info.AssertIs("_____", "FFFFF", "88888");
       info = Console.ReadScreen(11, 5, 5);
-      Assert.AreEqual("_____", info.ScreenText);
-      Assert.AreEqual("FFFFF", info.Foreground);
-      Assert.AreEqual("00000", info.Background);
+      info.AssertIs("_____", "FFFFF", "00000");
 
       Console.SendKey(ConsoleKey.Tab);
       DoLoop(2);
       Assert.AreEqual(2, Map.CurrentFieldIndex);
       info = Console.ReadScreen(11, 4, 5);
-      Assert.AreEqual("_____", info.ScreenText);
-      Assert.AreEqual("FFFFF", info.Foreground);
-      Assert.AreEqual("22222", info.Background);
+      info.AssertIs("_____", "FFFFF", "22222");
       info = Console.ReadScreen(11, 5, 5);
-      Assert.AreEqual("_____", info.ScreenText);
-      Assert.AreEqual("FFFFF", info.Foreground);
-      Assert.AreEqual("88888", info.Background);
+      info.AssertIs("_____", "FFFFF", "88888");
    }
 
    [TestMethod]
@@ -90,25 +82,17 @@ public partial class ApplicationTest {
       DoLoop();
       Assert.AreEqual(1, Map.CurrentFieldIndex);
       MockConsoleInfo info = Console.ReadScreen(11, 4, 5);
-      Assert.AreEqual("_____", info.ScreenText);
-      Assert.AreEqual("FFFFF", info.Foreground);
-      Assert.AreEqual("88888", info.Background);
+      info.AssertIs("_____", "FFFFF", "88888");
       info = Console.ReadScreen(11, 5, 5);
-      Assert.AreEqual("_____", info.ScreenText);
-      Assert.AreEqual("FFFFF", info.Foreground);
-      Assert.AreEqual("00000", info.Background);
+      info.AssertIs("_____", "FFFFF", "00000");
 
       Console.SendKey(ConsoleKey.DownArrow);
       DoLoop(2);
       Assert.AreEqual(2, Map.CurrentFieldIndex);
       info = Console.ReadScreen(11, 4, 5);
-      Assert.AreEqual("_____", info.ScreenText);
-      Assert.AreEqual("FFFFF", info.Foreground);
-      Assert.AreEqual("22222", info.Background);
+      info.AssertIs("_____", "FFFFF", "22222");
       info = Console.ReadScreen(11, 5, 5);
-      Assert.AreEqual("_____", info.ScreenText);
-      Assert.AreEqual("FFFFF", info.Foreground);
-      Assert.AreEqual("88888", info.Background);
+      info.AssertIs("_____", "FFFFF", "88888");
    }
 
    [TestMethod]
@@ -119,25 +103,17 @@ public partial class ApplicationTest {
       DoLoop();
       Assert.AreEqual(1, Map.CurrentFieldIndex);
       MockConsoleInfo info = Console.ReadScreen(11, 4, 5);
-      Assert.AreEqual("_____", info.ScreenText);
-      Assert.AreEqual("FFFFF", info.Foreground);
-      Assert.AreEqual("88888", info.Background);
+      info.AssertIs("_____", "FFFFF", "88888");
       info = Console.ReadScreen(11, 5, 5);
-      Assert.AreEqual("_____", info.ScreenText);
-      Assert.AreEqual("FFFFF", info.Foreground);
-      Assert.AreEqual("00000", info.Background);
+      info.AssertIs("_____", "FFFFF", "00000");
 
       Console.SendKey(ConsoleKey.UpArrow);
       DoLoop(2);
-      Assert.AreEqual(-1, Map.CurrentFieldIndex);
+      Assert.AreEqual(1, Map.CurrentFieldIndex);
       info = Console.ReadScreen(11, 4, 5);
-      Assert.AreEqual("_____", info.ScreenText);
-      Assert.AreEqual("FFFFF", info.Foreground);
-      Assert.AreEqual("22222", info.Background);
+      info.AssertIs("_____", "FFFFF", "88888");
       info = Console.ReadScreen(11, 5, 5);
-      Assert.AreEqual("_____", info.ScreenText);
-      Assert.AreEqual("FFFFF", info.Foreground);
-      Assert.AreEqual("00000", info.Background);
+      info.AssertIs("_____", "FFFFF", "00000");
    }
 
    [TestMethod]
@@ -147,9 +123,7 @@ public partial class ApplicationTest {
       App.Start();
       DoLoop();
       MockConsoleInfo info = Console.ReadScreen(11, 4, 5);
-      Assert.AreEqual("_____", info.ScreenText);
-      Assert.AreEqual("FFFFF", info.Foreground);
-      Assert.AreEqual("88888", info.Background);
+      info.AssertIs("_____", "FFFFF", "88888");
 
       Map.MoveFocusTo(0, 0);
       DoLoop();
@@ -157,9 +131,7 @@ public partial class ApplicationTest {
       Assert.AreEqual(0, Console.CursorTop);
       Assert.AreEqual(-1, Map.CurrentFieldIndex);
       info = Console.ReadScreen(11, 4, 5);
-      Assert.AreEqual("_____", info.ScreenText);
-      Assert.AreEqual("FFFFF", info.Foreground);
-      Assert.AreEqual("22222", info.Background);
+      info.AssertIs("_____", "FFFFF", "22222");
 
       Console.SendKey(ConsoleKey.Tab);
       DoLoop(2);
@@ -167,9 +139,7 @@ public partial class ApplicationTest {
       Assert.AreEqual(4, Console.CursorTop);
       Assert.AreEqual(1, Map.CurrentFieldIndex);
       info = Console.ReadScreen(11, 4, 5);
-      Assert.AreEqual("_____", info.ScreenText);
-      Assert.AreEqual("FFFFF", info.Foreground);
-      Assert.AreEqual("88888", info.Background);
+      info.AssertIs("_____", "FFFFF", "88888");
    }
 
    [TestMethod]
@@ -180,9 +150,7 @@ public partial class ApplicationTest {
       DoLoop();
       Assert.AreEqual(1, Map.CurrentFieldIndex);
       MockConsoleInfo info = Console.ReadScreen(11, 4, 5);
-      Assert.AreEqual("_____", info.ScreenText);
-      Assert.AreEqual("FFFFF", info.Foreground);
-      Assert.AreEqual("88888", info.Background);
+      info.AssertIs("_____", "FFFFF", "88888");
 
       Map.MoveFocusTo(0, 0);
       DoLoop();
@@ -190,9 +158,7 @@ public partial class ApplicationTest {
       Assert.AreEqual(0, Console.CursorLeft);
       Assert.AreEqual(0, Console.CursorTop);
       info = Console.ReadScreen(11, 4, 5);
-      Assert.AreEqual("_____", info.ScreenText);
-      Assert.AreEqual("FFFFF", info.Foreground);
-      Assert.AreEqual("22222", info.Background);
+      info.AssertIs("_____", "FFFFF", "22222");
 
       Console.SendKey(KeyModifier.Shift, ConsoleKey.Tab);
       DoLoop(2);
@@ -200,9 +166,7 @@ public partial class ApplicationTest {
       Assert.AreEqual(21, Console.CursorLeft);
       Assert.AreEqual(8, Console.CursorTop);
       info = Console.ReadScreen(21, 8, 5);
-      Assert.AreEqual("_ NEV", info.ScreenText);
-      Assert.AreEqual("F7777", info.Foreground);
-      Assert.AreEqual("80000", info.Background);
+      info.AssertIs("_ NEV", "F7777", "80000");
    }
 
    [TestMethod]
@@ -528,5 +492,157 @@ public partial class ApplicationTest {
       Assert.AreEqual("Some value X__", info.ScreenText);
       Assert.AreEqual("Some value X\t\t\t\t\t\t\t\t", Map.Fields[1].Value);
       Assert.AreEqual("Some value X", Map["Field"]);
+   }
+
+   [TestMethod]
+   public void TestKeepsFocusOnArrowLeftInField() {
+      Application.SetCursorPosition(15, 4);
+      DoLoop();
+      Assert.AreEqual(1, Map.CurrentFieldIndex);
+      Console.SendKey(ConsoleKey.LeftArrow);
+      DoLoop();
+      Assert.AreEqual(1, Map.CurrentFieldIndex);
+      Assert.AreEqual(14, Console.CursorLeft);
+      Assert.AreEqual(4, Console.CursorTop);
+   }
+
+   [TestMethod]
+   public void TestKeepsFocusOnArrowRightInField() {
+      Assert.AreEqual(1, Map.CurrentFieldIndex);
+      Assert.AreEqual(11, Console.CursorLeft);
+      Assert.AreEqual(4, Console.CursorTop);
+      Console.SendKey(ConsoleKey.RightArrow);
+      DoLoop();
+      Assert.AreEqual(1, Map.CurrentFieldIndex);
+      Assert.AreEqual(12, Console.CursorLeft);
+      Assert.AreEqual(4, Console.CursorTop);
+   }
+
+   [TestMethod]
+   public void TestKeepsFocusOnArrowLeftOnFirstLineField() {
+      Assert.AreEqual(1, Map.CurrentFieldIndex);
+      Assert.AreEqual(11, Console.CursorLeft);
+      Assert.AreEqual(4, Console.CursorTop);
+      Console.SendKey(ConsoleKey.LeftArrow);
+      DoLoop();
+      Assert.AreEqual(1, Map.CurrentFieldIndex);
+      Assert.AreEqual(11, Console.CursorLeft);
+      Assert.AreEqual(4, Console.CursorTop);
+   }
+
+   [TestMethod]
+   public void TestKeepsFocusOnArrowRightOnLastLineField() {
+      Application.SetCursorPosition(31, 4);
+      DoLoop();
+      Assert.AreEqual(1, Map.CurrentFieldIndex);
+      Console.SendKey(ConsoleKey.RightArrow);
+      DoLoop();
+      Assert.AreEqual(1, Map.CurrentFieldIndex);
+      Assert.AreEqual(31, Console.CursorLeft);
+      Assert.AreEqual(4, Console.CursorTop);
+   }
+
+   [TestMethod]
+   public void TestKeepsFocusOnArrowUpOnTopScreenField() {
+      Assert.AreEqual(1, Map.CurrentFieldIndex);
+      Assert.AreEqual(11, Console.CursorLeft);
+      Assert.AreEqual(4, Console.CursorTop);
+      Console.SendKey(ConsoleKey.UpArrow);
+      DoLoop();
+      Assert.AreEqual(1, Map.CurrentFieldIndex);
+      Assert.AreEqual(11, Console.CursorLeft);
+      Assert.AreEqual(4, Console.CursorTop);
+   }
+
+   [TestMethod]
+   public void TestKeepsFocusOnArrowDownOnBottomScreenField() {
+      Map.MoveFocus(7);
+      Assert.AreEqual(7, Map.CurrentFieldIndex);
+      Assert.AreEqual(11, Console.CursorLeft);
+      Assert.AreEqual(8, Console.CursorTop);
+      Console.SendKey(ConsoleKey.DownArrow);
+      DoLoop();
+      Assert.AreEqual(7, Map.CurrentFieldIndex);
+      Assert.AreEqual(11, Console.CursorLeft);
+      Assert.AreEqual(8, Console.CursorTop);
+   }
+
+   [TestMethod]
+   public void TestMoveFocusToFieldLeftWithArrowLeft() {
+      Map.MoveFocus(8);
+      Assert.AreEqual(8, Map.CurrentFieldIndex);
+      Assert.AreEqual(21, Console.CursorLeft);
+      Assert.AreEqual(8, Console.CursorTop);
+      Console.SendKey(ConsoleKey.LeftArrow);
+      DoLoop();
+      Assert.AreEqual(7, Map.CurrentFieldIndex);
+      Assert.AreEqual(12, Console.CursorLeft);
+      Assert.AreEqual(8, Console.CursorTop);
+   }
+
+   [TestMethod]
+   public void TestMoveFocusToFieldRightWithArrowRight() {
+      Map.MoveFocus(7);
+      Assert.AreEqual(7, Map.CurrentFieldIndex);
+      Assert.AreEqual(11, Console.CursorLeft);
+      Assert.AreEqual(8, Console.CursorTop);
+      Console.SendKey(ConsoleKey.RightArrow);
+      Console.SendKey(ConsoleKey.RightArrow);
+      DoLoop(2);
+      Assert.AreEqual(8, Map.CurrentFieldIndex);
+      Assert.AreEqual(21, Console.CursorLeft);
+      Assert.AreEqual(8, Console.CursorTop);
+   }
+
+   [TestMethod]
+   public void TestMoveFocusToFieldUpLeftWithArrowUp() {
+      Map.MoveFocus(8);
+      Assert.AreEqual(8, Map.CurrentFieldIndex);
+      Assert.AreEqual(21, Console.CursorLeft);
+      Assert.AreEqual(8, Console.CursorTop);
+      Console.SendKey(ConsoleKey.UpArrow);
+      DoLoop();
+      Assert.AreEqual(6, Map.CurrentFieldIndex);
+      Assert.AreEqual(20, Console.CursorLeft);
+      Assert.AreEqual(7, Console.CursorTop);
+   }
+
+   [TestMethod]
+   public void TestMoveFocusToFieldUpRightWithArrowUp() {
+      Map.MoveFocus(6);
+      Assert.AreEqual(6, Map.CurrentFieldIndex);
+      Assert.AreEqual(19, Console.CursorLeft);
+      Assert.AreEqual(7, Console.CursorTop);
+      Console.SendKey(ConsoleKey.UpArrow);
+      DoLoop();
+      Assert.AreEqual(4, Map.CurrentFieldIndex);
+      Assert.AreEqual(21, Console.CursorLeft);
+      Assert.AreEqual(6, Console.CursorTop);
+   }
+
+   [TestMethod]
+   public void TestMoveFocusToFieldBottomLeftWithArrowDown() {
+      Map.MoveFocus(4);
+      Assert.AreEqual(4, Map.CurrentFieldIndex);
+      Assert.AreEqual(21, Console.CursorLeft);
+      Assert.AreEqual(6, Console.CursorTop);
+      Console.SendKey(ConsoleKey.DownArrow);
+      DoLoop();
+      Assert.AreEqual(6, Map.CurrentFieldIndex);
+      Assert.AreEqual(20, Console.CursorLeft);
+      Assert.AreEqual(7, Console.CursorTop);
+   }
+
+   [TestMethod]
+   public void TestMoveFocusToFieldBottomRightWithArrowDown() {
+      Map.MoveFocus(6);
+      Assert.AreEqual(6, Map.CurrentFieldIndex);
+      Assert.AreEqual(19, Console.CursorLeft);
+      Assert.AreEqual(7, Console.CursorTop);
+      Console.SendKey(ConsoleKey.DownArrow);
+      DoLoop();
+      Assert.AreEqual(8, Map.CurrentFieldIndex);
+      Assert.AreEqual(21, Console.CursorLeft);
+      Assert.AreEqual(8, Console.CursorTop);
    }
 }

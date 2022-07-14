@@ -148,29 +148,70 @@ public sealed partial class Application {
    }
 
    private void MoveCursor(ConsoleKey key) {
+      if (CurrentMap is not Map map || CurrentMap.CurrentField is not Field field) {
+         return;
+      }
+      int cleft = Console.CursorLeft;
+      int ctop = Console.CursorTop;
+      Field? newField;
       switch (key) {
          case ConsoleKey.LeftArrow:
-            if (Console.CursorLeft > 0) {
-               Console.CursorLeft -= 1;
+            cleft -= cleft > 0 ? 1 : 0;
+            if (cleft < map.Left + field.Left) {
+               newField = map.Fields.Where(f => map.Top + f.Top == ctop && map.Left + f.Left <= cleft && f.IsFocusable)
+                                    .OrderByDescending(f => f.Left)
+                                    .FirstOrDefault();
+               if (newField is not null) {
+                  cleft = map.Left + newField.Left + newField.Width;
+               } else {
+                  cleft = Console.CursorLeft;
+               }
             }
             break;
          case ConsoleKey.RightArrow:
-            if (Console.CursorLeft < Console.WindowWidth - 1) {
-               Console.CursorLeft += 1;
+            cleft += cleft < Console.WindowWidth - 1 ? 1 : 0;
+            if (cleft > map.Left + field.Left + field.Width) {
+               newField = map.Fields.Where(f => f.Top == ctop && f.Left >= cleft && f.IsFocusable)
+                                    .OrderBy(f => f.Left)
+                                    .FirstOrDefault();
+               if (newField is not null) {
+                  cleft = map.Left + newField.Left;
+               } else {
+                  cleft = Console.CursorLeft;
+               }
             }
             break;
          case ConsoleKey.UpArrow:
-            if (Console.CursorTop > 0) {
-               Console.CursorTop -= 1;
-            }
-            break;
          case ConsoleKey.DownArrow:
-            if (Console.CursorTop < Console.WindowHeight - 1) {
-               Console.CursorTop += 1;
+            IEnumerable<Field> fields;
+            if (key is ConsoleKey.UpArrow) {
+               fields = map.Fields
+                  .Where(f => f.Top < ctop && f.IsFocusable);
+            } else {
+               fields = map.Fields
+                  .Where(f => f.Top > ctop && f.IsFocusable);
+            }
+            if (fields.Any()) {
+               int nextLine = key is ConsoleKey.UpArrow ? fields.Max(f => f.Top) : fields.Min(f => f.Top);
+               newField = fields.Where(f => f.Top == nextLine)
+                                .OrderBy(f => (cleft <= map.Left + f.Left
+                                   ? map.Left + f.Left - cleft
+                                   : cleft - map.Left - f.Left - f.Width))
+                                .FirstOrDefault();
+               if (newField is not null) {
+                  ctop = newField.Top;
+                  if (map.Left + newField.Left > cleft) {
+                     cleft = map.Left + newField.Left;
+                  } else if (cleft > map.Left + newField.Left + newField.Width) {
+                     cleft = map.Left + newField.Left + newField.Width;
+                  }
+               } else {
+                  ctop = Console.CursorTop;
+               }
             }
             break;
       }
-      CurrentMap?.MoveFocusTo(Console.CursorLeft, Console.CursorTop);
+      CurrentMap?.MoveFocusTo(cleft, ctop);
    }
 
    private void RedrawMapIfNeeded() {
@@ -243,7 +284,7 @@ public sealed partial class Application {
                } else if (field.IsEditable) {
                   _colors.SetFieldColors(field, map.CurrentFieldIndex == map.Fields.IndexOf(field));
                   fvalue = field.Value.Replace('\t', '_');
-                  if (field.Type is FieldType.Protected) {
+                  if (field.IsProtected) {
                      string masked = "";
                      foreach (char ch in fvalue) {
                         masked += ch == '_' ? '_' : _passwordChar;
