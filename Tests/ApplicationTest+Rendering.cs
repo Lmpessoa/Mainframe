@@ -553,4 +553,36 @@ public partial class ApplicationTest {
       info = Console.ReadScreen(2, 10, 20);
       Assert.AreEqual("MESSAGE: SOME MESSAG", info.ScreenText);
    }
+
+   [TestMethod]
+   public void TestVeryLargeMapIsCroppedOn80x24() {
+      Assert.AreEqual(80, Console.WindowWidth);
+      Assert.AreEqual(24, Console.WindowHeight);
+      Assert.ThrowsException<InvalidOperationException>(() => new LargeTestMap().Show());
+   }
+
+   [TestMethod]
+   public void TestVeryLargeMapIsCroppedOn120x30() {
+      App.Stop();
+      Console.SetWindowSize(120, 30);
+      App.Start();
+      Assert.ThrowsException<InvalidOperationException>(() => new LargeTestMap().Show());
+   }
+
+   [TestMethod]
+   public void TestVeryLargeMapIsNotCropped() {
+      App.Stop();
+      App.SetWindowSize(120, 30);
+      App.Start();
+      new LargeTestMap().Show();
+      DoLoop();
+      MockConsoleInfo info = Console.ReadScreen(2, 1, 10);
+      Assert.AreEqual("SCREEN 002", info.ScreenText);
+      info = Console.ReadScreen(80, 6, 33);
+      Assert.AreEqual("^ cropped at width 80 beyond this", info.ScreenText);
+      info = Console.ReadScreen(2, 29, 20);
+      Assert.AreEqual("This line is visible", info.ScreenText);
+   }
+
+   public class LargeTestMap : Map { }
 }

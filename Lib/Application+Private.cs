@@ -33,15 +33,17 @@ public sealed partial class Application {
    private readonly Stack<Map> _maps = new();
 
    private WindowBorder _border = WindowBorder.Ascii;
-   private (int Width, int Height) _consoleSize;
+   private (int Width, int Height) _consoleSize = (80, 24);
+   private bool _enforceSize = false;
    private DateTime _inactiveSince;
    private int _initCurSize;
    private bool _initCtrlC;
+   private (int Width, int Height) _initBuffSize;
    private (int Width, int Height) _initWinSize;
    private bool _viewDirty = false;
    private uint _maxIdleTime = 0;
    private char _passwordChar = '*';
-   private bool _restoreConsole = false;
+   private bool _needsRestore = false;
    private (int Left, int Top) _windowPos = (-1, -1);
 
    private IConsole Console { get; }

@@ -63,6 +63,13 @@ public sealed partial class Application {
    /// </summary>
    public int ReturnCode { get; private set; } = 0;
 
+   /// <summary>
+   /// 
+   /// </summary>
+   public void EnforceWindowSize() {
+      AssertAppIsNotRunning();
+      _enforceSize = true;
+   }
 
    /// <summary>
    /// 
@@ -91,16 +98,6 @@ public sealed partial class Application {
    /// <summary>
    /// 
    /// </summary>
-   /// <param name="width"></param>
-   /// <param name="height"></param>
-   public void SetConsoleSize(int width, int height) {
-      AssertAppIsNotRunning();
-      _consoleSize = (Math.Max(80, width), Math.Max(24, height));
-   }
-
-   /// <summary>
-   /// 
-   /// </summary>
    /// <param name="left"></param>
    /// <param name="top"></param>
    public void SetDefaultWindowPosition(int left, int top) {
@@ -115,6 +112,16 @@ public sealed partial class Application {
    public void SetMaxIdleTime(uint maxIdleTime) {
       AssertAppIsNotRunning();
       _maxIdleTime = maxIdleTime;
+   }
+
+   /// <summary>
+   /// 
+   /// </summary>
+   /// <param name="width"></param>
+   /// <param name="height"></param>
+   public void SetWindowSize(int width, int height) {
+      AssertAppIsNotRunning();
+      _consoleSize = (Math.Max(80, width), Math.Max(24, height));
    }
 
    /// <summary>
@@ -181,7 +188,6 @@ public sealed partial class Application {
    internal Application(Map initialMap, IConsole console) {
       _initialMap = initialMap ?? throw new ArgumentNullException(nameof(initialMap));
       Console = console ?? throw new ArgumentNullException(nameof(console));
-      _consoleSize = (Math.Max(80, Console.WindowWidth), Math.Max(24, Console.WindowHeight));
       _colors = new(console);
    }
 
@@ -194,6 +200,9 @@ public sealed partial class Application {
       int left = 0;
       int top = 0;
       if (_current is not null) {
+         if (map.Width > _current._consoleSize.Width || map.Height > _current._consoleSize.Height) {
+            throw new InvalidOperationException("Map is too large for the screen");
+         }
          if (_current.CurrentMap is Map previous) {
             previous.CursorLastPosition = (_current.Console.CursorLeft, _current.Console.CursorTop);
             previous.WillDeactivate();
@@ -269,9 +278,13 @@ public sealed partial class Application {
       _current = this;
       _initCtrlC = Console.TreatControlCAsInput;
       _initCurSize = Console.CursorSize;
+      _initBuffSize = (Console.BufferWidth, Console.BufferHeight);
       _initWinSize = (Console.WindowWidth, Console.WindowHeight);
-      //EnforceTerminalSize();
-      _restoreConsole = true;
+      if (_enforceSize || _consoleSize.Width > Console.WindowWidth || _consoleSize.Height > Console.WindowHeight) {
+         Console.SetWindowSize(_consoleSize.Width, _consoleSize.Height);
+         Console.SetBufferSize(_consoleSize.Width, _consoleSize.Height);
+      }
+      _needsRestore = true;
       Console.TreatControlCAsInput = true;
       _inactiveSince = DateTime.Now;
       _initialMap.Show();
@@ -282,15 +295,18 @@ public sealed partial class Application {
          map.Application = null;
       }
       _maps.Clear();
-      if (_restoreConsole) {
-         //RestoreConsoleSize();
+      if (_needsRestore) {
          Console.ResetColor();
          Console.Clear();
+         if (_enforceSize || _initWinSize.Width < _consoleSize.Width || _initWinSize.Height < _consoleSize.Height) {
+            Console.SetWindowSize(_initWinSize.Width, _initWinSize.Height);
+            Console.SetBufferSize(_initBuffSize.Width, _initBuffSize.Height);
+         }
          Console.CursorSize = _initCurSize;
          Console.CursorVisible = true;
          Console.TreatControlCAsInput = _initCtrlC;
       }
-      _restoreConsole = false;
+      _needsRestore = false;
       _current = null;
    }
 }

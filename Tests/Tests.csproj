@@ -11,11 +11,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="ApplicationTest+LargeTestMap.map" />
     <None Remove="ApplicationTest+TestMap.map" />
     <None Remove="MapRenderTest+TestMap2.map" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="ApplicationTest+LargeTestMap.map" />
     <EmbeddedResource Include="ApplicationTest+TestMap.map" />
   </ItemGroup>
 

@@ -31,4 +31,5 @@ Application app = new(new BookInfoMap());
 app.UseActiveFieldBackground();
 app.UseCommandColorInBackground(ConsoleColor.Yellow);
 app.UseWindowBorder(WindowBorder.Square);
+app.EnforceWindowSize();
 app.Run();

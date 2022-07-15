@@ -1,0 +1,30 @@
+﻿>
+>  SCREEN 002
+>
+>    This is a map meant to have more content than fits the display window of the console. Contents may be cropped.      
+>    This contents will fit a screen of 120 x 30.  
+>
+>                                                      this will always be shown ^ cropped at width 80 beyond this
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>   This is the last line visible at height 24
+>   This line is cropped at height 24
+>
+>
+>
+>
+>  This line is visible at height 30

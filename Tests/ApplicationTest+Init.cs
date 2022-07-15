@@ -78,4 +78,40 @@ public partial class ApplicationTest {
    public void TestCannotShowMapAlreadyInApp() {
       Assert.ThrowsException<InvalidOperationException>(() => Map.Show());
    }
+
+   [TestMethod]
+   public void TestSettingConsoleSize() {
+      Assert.AreEqual(80, Console.WindowWidth);
+      Assert.AreEqual(24, Console.WindowHeight);
+      App.Stop();
+      App.SetWindowSize(120, 30);
+      App.Start();
+      Assert.AreEqual(120, Console.WindowWidth);
+      Assert.AreEqual(30, Console.WindowHeight);
+      App.Stop();
+      Assert.AreEqual(80, Console.WindowWidth);
+      Assert.AreEqual(24, Console.WindowHeight);
+   }
+
+   [TestMethod]
+   public void TestEnforcingConsoleSize() {
+      App.Stop();
+      Console.SetWindowSize(120, 30);
+      App.Start();
+      Assert.AreEqual(120, Console.WindowWidth);
+      Assert.AreEqual(30, Console.WindowHeight);
+      App.Stop();
+      App.SetWindowSize(80, 24);
+      App.Start();
+      Assert.AreEqual(120, Console.WindowWidth);
+      Assert.AreEqual(30, Console.WindowHeight);
+      App.Stop();
+      App.EnforceWindowSize();
+      App.Start();
+      Assert.AreEqual(80, Console.WindowWidth);
+      Assert.AreEqual(24, Console.WindowHeight);
+      App.Stop();
+      Assert.AreEqual(120, Console.WindowWidth);
+      Assert.AreEqual(30, Console.WindowHeight);
+   }
 }

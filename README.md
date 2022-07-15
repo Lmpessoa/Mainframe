@@ -1,6 +1,6 @@
-<img alt="Mainframe icon" src="Resources/Header.svg" height="150">
+<img alt="Mainframe icon" src="Resources/Header.svg" height="120">
 
-Mainframe is a simple visual user interface toolkit for developing console .NET applications alike old mainframe application.
+Mainframe is a simple visual user interface toolkit for developing mainframe-alike console applications in .NET
 
 ## Why the Console?
 
