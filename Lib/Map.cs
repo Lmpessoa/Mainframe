@@ -224,7 +224,7 @@ public abstract class Map {
 
    internal Application? Application { get; set; }
 
-   internal IEnumerable<MapFragment> Fragments { get; private set; } = Array.Empty<MapFragment>();
+   internal IEnumerable<MapPart> Parts { get; private set; } = Array.Empty<MapPart>();
 
    internal Field? CurrentField
       => CurrentFieldIndex > -1 && CurrentFieldIndex < Fields.Count ? Fields[CurrentFieldIndex] : null;
@@ -330,27 +330,27 @@ public abstract class Map {
    private void InitFromContents(IEnumerable<string> source) {
       source = source ?? throw new ArgumentNullException(nameof(source));
       string[] fieldLines = source.Where(l => l.Length > 0 && l[0] is '¬').Select(f => f[1..]).ToArray();
-      string[] fragtLines = source.Where(l => l.Length > 0 && l[0] is '>' or ':').ToArray();
-      if (!fragtLines.Any()) {
+      string[] partLines = source.Where(l => l.Length > 0 && l[0] is '>' or ':').ToArray();
+      if (!partLines.Any()) {
          throw new ArgumentException("Map has no contents", nameof(source));
       }
-      Width = fragtLines.Max(l => l.Length) - 1;
-      List<MapFragment> fragments = new();
+      Width = partLines.Max(l => l.Length) - 1;
+      List<MapPart> parts = new();
       int findex = 0;
       int top = 0;
-      for (int i = 0; i < fragtLines.Length; ++i) {
-         if (fragtLines[i][0] != '>') {
+      for (int i = 0; i < partLines.Length; ++i) {
+         if (partLines[i][0] != '>') {
             continue;
          }
-         int lwidth = Width - fragtLines[i].Length + 1;
-         string line = fragtLines[i][1..] + (lwidth > 0 ? new string(' ', lwidth) : "");
+         int lwidth = Width - partLines[i].Length + 1;
+         string line = partLines[i][1..] + (lwidth > 0 ? new string(' ', lwidth) : "");
          string foreMarkup = "";
          string backMarkup = "";
-         if (i + 1 < fragtLines.Length && fragtLines[i + 1][0] == ':') {
-            foreMarkup = fragtLines[i + 1][1..].ToUpper().TrimEnd();
+         if (i + 1 < partLines.Length && partLines[i + 1][0] == ':') {
+            foreMarkup = partLines[i + 1][1..].ToUpper().TrimEnd();
             i += 1;
-            if (i + 1 < fragtLines.Length && fragtLines[i + 1][0] == ':') {
-               backMarkup = fragtLines[i + 1][1..].ToUpper().TrimEnd();
+            if (i + 1 < partLines.Length && partLines[i + 1][0] == ':') {
+               backMarkup = partLines[i + 1][1..].ToUpper().TrimEnd();
                i += 1;
             }
          }
@@ -380,11 +380,11 @@ public abstract class Map {
                findex += 1;
             }
          }
-         fragments.AddRange(MapFragment.Parse(line, foreMarkup, backMarkup));
+         parts.AddRange(MapPart.Parse(line, foreMarkup, backMarkup));
          top += 1;
       }
       Height = top;
-      Fragments = fragments.ToImmutableArray();
+      Parts = parts.ToImmutableArray();
       var methods = this.GetType()
          .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
          .Where(m => m.ReturnType == typeof(void) && m.GetParameters().Length == 0)

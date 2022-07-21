@@ -25,17 +25,17 @@ using System.Text.RegularExpressions;
 
 namespace Lmpessoa.Mainframe;
 
-internal sealed class MapFragment {
+internal sealed class MapPart {
 
    public string Text { get; init; }
 
-   public ConsoleColor ForegroundColor { get; init; }
+   public MapPartColor ForegroundColor { get; init; }
 
-   public ConsoleColor BackgroundColor { get; init; }
+   public MapPartColor BackgroundColor { get; init; }
 
    public bool LineBreak { get; init; }
 
-   public static IEnumerable<MapFragment> Parse(string text, string fore = "", string back = "") {
+   public static IEnumerable<MapPart> Parse(string text, string fore = "", string back = "") {
       if (fore.Length < text.Length) {
          fore += new string(' ', text.Length - fore.Length);
       }
@@ -47,12 +47,13 @@ internal sealed class MapFragment {
       indices.AddRange(Regex.Matches(back, "(.)\\1*").Select(m => m.Index));
       indices = indices.Distinct().OrderBy(i => i).ToList();
 
-      List<MapFragment> result = new();
+      List<MapPart> result = new();
       for (int i = 0; i < indices.Count && indices[i] < text.Length; ++i) {
          result.Add(new() {
             Text = i < indices.Count - 1 ? text[indices[i]..indices[i + 1]] : text[indices[i]..],
-            ForegroundColor = (ConsoleColor) "0123456789ABCDEF+".IndexOf(fore[indices[i]]),
-            BackgroundColor = (ConsoleColor) (fore[indices[i]] == '+' ? 16 : "0123456789ABCDEF+".IndexOf(back[indices[i]])),
+            ForegroundColor = fore[indices[i]] == '+' ? MapPartColor.Highlight : (MapPartColor) "0123456789ABCDEF".IndexOf(fore[indices[i]]),
+            BackgroundColor = fore[indices[i]] == '+' || back[indices[i]] == '+' ? MapPartColor.Highlight 
+               : (MapPartColor) "0123456789ABCDEF+".IndexOf(back[indices[i]]),
             LineBreak = i == indices.Count - 1,
          });
       }

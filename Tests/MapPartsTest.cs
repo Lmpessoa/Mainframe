@@ -23,92 +23,92 @@
 namespace Lmpessoa.Mainframe.Tests;
 
 [TestClass]
-public sealed class MapFragmentTest {
+public sealed class MapPartsTest {
 
    [TestMethod]
    public void TestSimpleLine() {
-      MapFragment[] result = MapFragment.Parse("  TEST  ").ToArray();
+      MapPart[] result = MapPart.Parse("  TEST  ").ToArray();
       Assert.AreEqual(1, result.Length);
-      AssertFragmentIs(result[0], "  TEST  ", (ConsoleColor) (-1), (ConsoleColor) (-1), true);
+      AssertFragmentIs(result[0], "  TEST  ", MapPartColor.Default, MapPartColor.Default, true);
    }
 
    [TestMethod]
    public void TestTwoPartCommandFirst() {
-      MapFragment[] result = MapFragment.Parse("PF10 EXIT",
+      MapPart[] result = MapPart.Parse("PF10 EXIT",
                                                "++++     ").ToArray();
       Assert.AreEqual(2, result.Length);
-      AssertFragmentIs(result[0], "PF10", (ConsoleColor) 16, (ConsoleColor) 16, false);
-      AssertFragmentIs(result[1], " EXIT", (ConsoleColor) (-1), (ConsoleColor) (-1), true);
+      AssertFragmentIs(result[0], "PF10", MapPartColor.Highlight, MapPartColor.Highlight, false);
+      AssertFragmentIs(result[1], " EXIT", MapPartColor.Default, MapPartColor.Default, true);
    }
 
    [TestMethod]
    public void TestTwoPartCommandFirstTrimmed() {
-      MapFragment[] result = MapFragment.Parse("PF10 EXIT",
+      MapPart[] result = MapPart.Parse("PF10 EXIT",
                                                "++++").ToArray();
       Assert.AreEqual(2, result.Length);
-      AssertFragmentIs(result[0], "PF10", (ConsoleColor) 16, (ConsoleColor) 16, false);
-      AssertFragmentIs(result[1], " EXIT", (ConsoleColor) (-1), (ConsoleColor) (-1), true);
+      AssertFragmentIs(result[0], "PF10", MapPartColor.Highlight, MapPartColor.Highlight, false);
+      AssertFragmentIs(result[1], " EXIT", MapPartColor.Default, MapPartColor.Default, true);
    }
 
    [TestMethod]
    public void TestTwoPartCommandLast() {
-      MapFragment[] result = MapFragment.Parse("EXIT -> PF10",
+      MapPart[] result = MapPart.Parse("EXIT -> PF10",
                                                "        ++++").ToArray();
       Assert.AreEqual(2, result.Length);
-      AssertFragmentIs(result[0], "EXIT -> ", (ConsoleColor) (-1), (ConsoleColor) (-1), false);
-      AssertFragmentIs(result[1], "PF10", (ConsoleColor) 16, (ConsoleColor) 16, true);
+      AssertFragmentIs(result[0], "EXIT -> ", MapPartColor.Default, MapPartColor.Default, false);
+      AssertFragmentIs(result[1], "PF10", MapPartColor.Highlight, MapPartColor.Highlight, true);
    }
 
    [TestMethod]
    public void TestThreePartCommand() {
-      MapFragment[] result = MapFragment.Parse("   PF10 EXIT",
+      MapPart[] result = MapPart.Parse("   PF10 EXIT",
                                                "   ++++").ToArray();
       Assert.AreEqual(3, result.Length);
-      AssertFragmentIs(result[0], "   ", (ConsoleColor) (-1), (ConsoleColor) (-1), false);
-      AssertFragmentIs(result[1], "PF10", (ConsoleColor) 16, (ConsoleColor) 16, false);
-      AssertFragmentIs(result[2], " EXIT", (ConsoleColor) (-1), (ConsoleColor) (-1), true);
+      AssertFragmentIs(result[0], "   ", MapPartColor.Default, MapPartColor.Default, false);
+      AssertFragmentIs(result[1], "PF10", MapPartColor.Highlight, MapPartColor.Highlight, false);
+      AssertFragmentIs(result[2], " EXIT", MapPartColor.Default, MapPartColor.Default, true);
    }
 
    [TestMethod]
    public void TestCommandIgnoresBackground() {
-      MapFragment[] result = MapFragment.Parse("PF10", "++++", "0000").ToArray();
+      MapPart[] result = MapPart.Parse("PF10", "++++", "0000").ToArray();
       Assert.AreEqual(1, result.Length);
-      AssertFragmentIs(result[0], "PF10", (ConsoleColor) 16, (ConsoleColor) 16, true);
+      AssertFragmentIs(result[0], "PF10", MapPartColor.Highlight, MapPartColor.Highlight, true);
    }
 
    [TestMethod]
    public void TestTwoPartWithSameBackground() {
-      MapFragment[] result = MapFragment.Parse("SCREEN 001",
+      MapPart[] result = MapPart.Parse("SCREEN 001",
                                                "FFFFFFFEEE",
                                                "1111111111").ToArray();
       Assert.AreEqual(2, result.Length);
-      AssertFragmentIs(result[0], "SCREEN ", ConsoleColor.White, ConsoleColor.DarkBlue, false);
-      AssertFragmentIs(result[1], "001", ConsoleColor.Yellow, ConsoleColor.DarkBlue, true);
+      AssertFragmentIs(result[0], "SCREEN ", MapPartColor.White, MapPartColor.DarkBlue, false);
+      AssertFragmentIs(result[1], "001", MapPartColor.Yellow, MapPartColor.DarkBlue, true);
    }
 
    [TestMethod]
    public void TestTwoPartWithSameForeground() {
-      MapFragment[] result = MapFragment.Parse("SCREEN 001",
+      MapPart[] result = MapPart.Parse("SCREEN 001",
                                                "FFFFFFFFFF",
                                                "1111111222").ToArray();
       Assert.AreEqual(2, result.Length);
-      AssertFragmentIs(result[0], "SCREEN ", ConsoleColor.White, ConsoleColor.DarkBlue, false);
-      AssertFragmentIs(result[1], "001", ConsoleColor.White, ConsoleColor.DarkGreen, true);
+      AssertFragmentIs(result[0], "SCREEN ", MapPartColor.White, MapPartColor.DarkBlue, false);
+      AssertFragmentIs(result[1], "001", MapPartColor.White, MapPartColor.DarkGreen, true);
    }
 
    [TestMethod]
    public void TestMisalignedColours() {
-      MapFragment[] result = MapFragment.Parse("DOUBLECOLORS",
+      MapPart[] result = MapPart.Parse("DOUBLECOLORS",
                                                "111116666666",
                                                "000000088888").ToArray();
       Assert.AreEqual(3, result.Length);
-      AssertFragmentIs(result[0], "DOUBL", ConsoleColor.DarkBlue, ConsoleColor.Black, false);
-      AssertFragmentIs(result[1], "EC", ConsoleColor.DarkYellow, ConsoleColor.Black, false);
-      AssertFragmentIs(result[2], "OLORS", ConsoleColor.DarkYellow, ConsoleColor.DarkGray, true);
+      AssertFragmentIs(result[0], "DOUBL", MapPartColor.DarkBlue, MapPartColor.Black, false);
+      AssertFragmentIs(result[1], "EC", MapPartColor.DarkYellow, MapPartColor.Black, false);
+      AssertFragmentIs(result[2], "OLORS", MapPartColor.DarkYellow, MapPartColor.DarkGray, true);
    }
 
-   private static void AssertFragmentIs(MapFragment fragment, string expectedText,
-         ConsoleColor expectedFore, ConsoleColor expectedBack, bool lineBreak) {
+   private static void AssertFragmentIs(MapPart fragment, string expectedText,
+         MapPartColor expectedFore, MapPartColor expectedBack, bool lineBreak) {
       Assert.AreEqual(expectedText, fragment.Text);
       Assert.AreEqual(expectedFore, fragment.ForegroundColor);
       Assert.AreEqual(expectedBack, fragment.BackgroundColor);

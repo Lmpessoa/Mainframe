@@ -244,16 +244,16 @@ public sealed partial class Application {
          }
          ConsoleColor _fore = Console.ForegroundColor;
          ConsoleColor _back = Console.BackgroundColor;
-         foreach (MapFragment fragment in map.Fragments) {
-            Console.ForegroundColor = (int) fragment.ForegroundColor switch {
-               -1 => _fore,
-               16 => _colors.CommandForegroundColor,
-               _ => fragment.ForegroundColor
+         foreach (MapPart fragment in map.Parts) {
+            Console.ForegroundColor = fragment.ForegroundColor switch {
+               MapPartColor.Default => _fore,
+               MapPartColor.Highlight => _colors.CommandForegroundColor,
+               _ => (ConsoleColor) (int) fragment.ForegroundColor
             };
-            Console.BackgroundColor = (int) fragment.BackgroundColor switch {
-               -1 => (int) fragment.ForegroundColor != 16 ? _back : _colors.CommandBackgroundColor,
-               16 => _colors.CommandBackgroundColor,
-               _ => fragment.BackgroundColor,
+            Console.BackgroundColor = fragment.BackgroundColor switch {
+               MapPartColor.Default => _back,
+               MapPartColor.Highlight => _colors.CommandBackgroundColor,
+               _ => (ConsoleColor) (int) fragment.BackgroundColor,
             };
             Console.Write(fragment.Text);
             if (fragment.LineBreak) {

@@ -51,12 +51,12 @@ public sealed class MapRenderTest {
       Map map = new TestMap1("> SCREEN 001");
       Assert.AreEqual(11, map.Width);
       Assert.AreEqual(1, map.Height);
-      MapFragment[] fragments = map.Fragments.ToArray();
-      Assert.AreEqual(1, fragments.Length);
-      Assert.AreEqual(" SCREEN 001", fragments[0].Text);
-      Assert.AreEqual((ConsoleColor) (-1), fragments[0].ForegroundColor);
-      Assert.AreEqual((ConsoleColor) (-1), fragments[0].BackgroundColor);
-      Assert.IsTrue(fragments[0].LineBreak);
+      MapPart[] parts = map.Parts.ToArray();
+      Assert.AreEqual(1, parts.Length);
+      Assert.AreEqual(" SCREEN 001", parts[0].Text);
+      Assert.AreEqual(MapPartColor.Default, parts[0].ForegroundColor);
+      Assert.AreEqual(MapPartColor.Default, parts[0].BackgroundColor);
+      Assert.IsTrue(parts[0].LineBreak);
 
       Assert.AreEqual(0, map.Fields.Count);
    }
@@ -66,12 +66,12 @@ public sealed class MapRenderTest {
       Map map = new TestMap1(":11111111111", "> SCREEN 001");
       Assert.AreEqual(11, map.Width);
       Assert.AreEqual(1, map.Height);
-      MapFragment[] fragments = map.Fragments.ToArray();
-      Assert.AreEqual(1, fragments.Length);
-      Assert.AreEqual(" SCREEN 001", fragments[0].Text);
-      Assert.AreEqual((ConsoleColor) (-1), fragments[0].ForegroundColor);
-      Assert.AreEqual((ConsoleColor) (-1), fragments[0].BackgroundColor);
-      Assert.IsTrue(fragments[0].LineBreak);
+      MapPart[] parts = map.Parts.ToArray();
+      Assert.AreEqual(1, parts.Length);
+      Assert.AreEqual(" SCREEN 001", parts[0].Text);
+      Assert.AreEqual(MapPartColor.Default, parts[0].ForegroundColor);
+      Assert.AreEqual(MapPartColor.Default, parts[0].BackgroundColor);
+      Assert.IsTrue(parts[0].LineBreak);
 
       Assert.AreEqual(0, map.Fields.Count);
    }
@@ -81,17 +81,17 @@ public sealed class MapRenderTest {
       Map map = new TestMap1("> SCREEN 001", "+this line is discarded", "> LINE 02");
       Assert.AreEqual(11, map.Width);
       Assert.AreEqual(2, map.Height);
-      MapFragment[] fragments = map.Fragments.ToArray();
-      Assert.AreEqual(2, fragments.Length);
-      Assert.AreEqual(" SCREEN 001", fragments[0].Text);
-      Assert.AreEqual((ConsoleColor) (-1), fragments[0].ForegroundColor);
-      Assert.AreEqual((ConsoleColor) (-1), fragments[0].BackgroundColor);
-      Assert.IsTrue(fragments[0].LineBreak);
+      MapPart[] parts = map.Parts.ToArray();
+      Assert.AreEqual(2, parts.Length);
+      Assert.AreEqual(" SCREEN 001", parts[0].Text);
+      Assert.AreEqual(MapPartColor.Default, parts[0].ForegroundColor);
+      Assert.AreEqual(MapPartColor.Default, parts[0].BackgroundColor);
+      Assert.IsTrue(parts[0].LineBreak);
 
-      Assert.AreEqual(" LINE 02   ", fragments[1].Text);
-      Assert.AreEqual((ConsoleColor) (-1), fragments[1].ForegroundColor);
-      Assert.AreEqual((ConsoleColor) (-1), fragments[1].BackgroundColor);
-      Assert.IsTrue(fragments[1].LineBreak);
+      Assert.AreEqual(" LINE 02   ", parts[1].Text);
+      Assert.AreEqual(MapPartColor.Default, parts[1].ForegroundColor);
+      Assert.AreEqual(MapPartColor.Default, parts[1].BackgroundColor);
+      Assert.IsTrue(parts[1].LineBreak);
 
       Assert.AreEqual(0, map.Fields.Count);
    }
@@ -101,17 +101,17 @@ public sealed class MapRenderTest {
       Map map = new TestMap1("> SCREEN 001", ":        AAA");
       Assert.AreEqual(11, map.Width);
       Assert.AreEqual(1, map.Height);
-      MapFragment[] fragments = map.Fragments.ToArray();
-      Assert.AreEqual(2, fragments.Length);
-      Assert.AreEqual(" SCREEN ", fragments[0].Text);
-      Assert.AreEqual((ConsoleColor) (-1), fragments[0].ForegroundColor);
-      Assert.AreEqual((ConsoleColor) (-1), fragments[0].BackgroundColor);
-      Assert.IsFalse(fragments[0].LineBreak);
+      MapPart[] parts = map.Parts.ToArray();
+      Assert.AreEqual(2, parts.Length);
+      Assert.AreEqual(" SCREEN ", parts[0].Text);
+      Assert.AreEqual(MapPartColor.Default, parts[0].ForegroundColor);
+      Assert.AreEqual(MapPartColor.Default, parts[0].BackgroundColor);
+      Assert.IsFalse(parts[0].LineBreak);
 
-      Assert.AreEqual("001", fragments[1].Text);
-      Assert.AreEqual(ConsoleColor.Green, fragments[1].ForegroundColor);
-      Assert.AreEqual((ConsoleColor) (-1), fragments[1].BackgroundColor);
-      Assert.IsTrue(fragments[1].LineBreak);
+      Assert.AreEqual("001", parts[1].Text);
+      Assert.AreEqual(MapPartColor.Green, parts[1].ForegroundColor);
+      Assert.AreEqual(MapPartColor.Default, parts[1].BackgroundColor);
+      Assert.IsTrue(parts[1].LineBreak);
 
       Assert.AreEqual(0, map.Fields.Count);
    }
@@ -121,17 +121,17 @@ public sealed class MapRenderTest {
       Map map = new TestMap1("> SCREEN 001", ":        EEE", ":11111111111");
       Assert.AreEqual(11, map.Width);
       Assert.AreEqual(1, map.Height);
-      MapFragment[] fragments = map.Fragments.ToArray();
-      Assert.AreEqual(2, fragments.Length);
-      Assert.AreEqual(" SCREEN ", fragments[0].Text);
-      Assert.AreEqual((ConsoleColor) (-1), fragments[0].ForegroundColor);
-      Assert.AreEqual(ConsoleColor.DarkBlue, fragments[0].BackgroundColor);
-      Assert.IsFalse(fragments[0].LineBreak);
+      MapPart[] parts = map.Parts.ToArray();
+      Assert.AreEqual(2, parts.Length);
+      Assert.AreEqual(" SCREEN ", parts[0].Text);
+      Assert.AreEqual(MapPartColor.Default, parts[0].ForegroundColor);
+      Assert.AreEqual(MapPartColor.DarkBlue, parts[0].BackgroundColor);
+      Assert.IsFalse(parts[0].LineBreak);
 
-      Assert.AreEqual("001", fragments[1].Text);
-      Assert.AreEqual(ConsoleColor.Yellow, fragments[1].ForegroundColor);
-      Assert.AreEqual(ConsoleColor.DarkBlue, fragments[1].BackgroundColor);
-      Assert.IsTrue(fragments[1].LineBreak);
+      Assert.AreEqual("001", parts[1].Text);
+      Assert.AreEqual(MapPartColor.Yellow, parts[1].ForegroundColor);
+      Assert.AreEqual(MapPartColor.DarkBlue, parts[1].BackgroundColor);
+      Assert.IsTrue(parts[1].LineBreak);
 
       Assert.AreEqual(0, map.Fields.Count);
    }
@@ -141,12 +141,12 @@ public sealed class MapRenderTest {
       Map map = new TestMap1(">  ¬XXXXXXX ", "¬Field:INP[8]");
       Assert.AreEqual(11, map.Width);
       Assert.AreEqual(1, map.Height);
-      MapFragment[] fragments = map.Fragments.ToArray();
-      Assert.AreEqual(1, fragments.Length);
-      Assert.AreEqual("           ", fragments[0].Text);
-      Assert.AreEqual((ConsoleColor) (-1), fragments[0].ForegroundColor);
-      Assert.AreEqual((ConsoleColor) (-1), fragments[0].BackgroundColor);
-      Assert.IsTrue(fragments[0].LineBreak);
+      MapPart[] parts = map.Parts.ToArray();
+      Assert.AreEqual(1, parts.Length);
+      Assert.AreEqual("           ", parts[0].Text);
+      Assert.AreEqual(MapPartColor.Default, parts[0].ForegroundColor);
+      Assert.AreEqual(MapPartColor.Default, parts[0].BackgroundColor);
+      Assert.IsTrue(parts[0].LineBreak);
 
       Assert.AreEqual(1, map.Fields.Count);
       Assert.IsTrue(map.Fields[0].IsEditable);
@@ -160,12 +160,12 @@ public sealed class MapRenderTest {
       Map map = new TestMap1(">  ¬XXXXXXX : ¬XXXXXXX ", "¬Label:ROT[8]", "¬Field:INP[8]");
       Assert.AreEqual(22, map.Width);
       Assert.AreEqual(1, map.Height);
-      MapFragment[] fragments = map.Fragments.ToArray();
-      Assert.AreEqual(1, fragments.Length);
-      Assert.AreEqual("           :          ", fragments[0].Text);
-      Assert.AreEqual((ConsoleColor) (-1), fragments[0].ForegroundColor);
-      Assert.AreEqual((ConsoleColor) (-1), fragments[0].BackgroundColor);
-      Assert.IsTrue(fragments[0].LineBreak);
+      MapPart[] parts = map.Parts.ToArray();
+      Assert.AreEqual(1, parts.Length);
+      Assert.AreEqual("           :          ", parts[0].Text);
+      Assert.AreEqual(MapPartColor.Default, parts[0].ForegroundColor);
+      Assert.AreEqual(MapPartColor.Default, parts[0].BackgroundColor);
+      Assert.IsTrue(parts[0].LineBreak);
 
       Assert.AreEqual(2, map.Fields.Count);
       Assert.IsTrue(map.Fields[0].IsReadOnly);
@@ -184,17 +184,17 @@ public sealed class MapRenderTest {
       Map map = new TestMap1(">  ¬XXXXXXX ", ">       TEST: ¬XXXXXXX ", "¬Label:ROT[8]", "¬Field:INP[8]");
       Assert.AreEqual(22, map.Width);
       Assert.AreEqual(2, map.Height);
-      MapFragment[] fragments = map.Fragments.ToArray();
-      Assert.AreEqual(2, fragments.Length);
-      Assert.AreEqual("                      ", fragments[0].Text);
-      Assert.AreEqual((ConsoleColor) (-1), fragments[0].ForegroundColor);
-      Assert.AreEqual((ConsoleColor) (-1), fragments[0].BackgroundColor);
-      Assert.IsTrue(fragments[0].LineBreak);
+      MapPart[] parts = map.Parts.ToArray();
+      Assert.AreEqual(2, parts.Length);
+      Assert.AreEqual("                      ", parts[0].Text);
+      Assert.AreEqual(MapPartColor.Default, parts[0].ForegroundColor);
+      Assert.AreEqual(MapPartColor.Default, parts[0].BackgroundColor);
+      Assert.IsTrue(parts[0].LineBreak);
 
-      Assert.AreEqual("       TEST:          ", fragments[1].Text);
-      Assert.AreEqual((ConsoleColor) (-1), fragments[1].ForegroundColor);
-      Assert.AreEqual((ConsoleColor) (-1), fragments[1].BackgroundColor);
-      Assert.IsTrue(fragments[1].LineBreak);
+      Assert.AreEqual("       TEST:          ", parts[1].Text);
+      Assert.AreEqual(MapPartColor.Default, parts[1].ForegroundColor);
+      Assert.AreEqual(MapPartColor.Default, parts[1].BackgroundColor);
+      Assert.IsTrue(parts[1].LineBreak);
 
       Assert.AreEqual(2, map.Fields.Count);
       Assert.IsTrue(map.Fields[0].IsReadOnly);
@@ -452,24 +452,24 @@ public sealed class MapRenderTest {
    [TestMethod]
    public void TestContentFromResource() {
       Map map = new TestMap2();
-      MapFragment[] fragments = map.Fragments.ToArray();
-      Assert.AreEqual(4, fragments.Length);
+      MapPart[] parts = map.Parts.ToArray();
+      Assert.AreEqual(4, parts.Length);
 
-      Assert.AreEqual("  SCREEN ", fragments[0].Text);
-      Assert.AreEqual((ConsoleColor) (-1), fragments[0].ForegroundColor);
-      Assert.IsFalse(fragments[0].LineBreak);
+      Assert.AreEqual("  SCREEN ", parts[0].Text);
+      Assert.AreEqual(MapPartColor.Default, parts[0].ForegroundColor);
+      Assert.IsFalse(parts[0].LineBreak);
 
-      Assert.AreEqual("002", fragments[1].Text);
-      Assert.AreEqual(ConsoleColor.Yellow, fragments[1].ForegroundColor);
-      Assert.IsTrue(fragments[1].LineBreak);
+      Assert.AreEqual("002", parts[1].Text);
+      Assert.AreEqual(MapPartColor.Yellow, parts[1].ForegroundColor);
+      Assert.IsTrue(parts[1].LineBreak);
 
-      Assert.AreEqual("            ", fragments[2].Text);
-      Assert.AreEqual((ConsoleColor) (-1), fragments[2].ForegroundColor);
-      Assert.IsTrue(fragments[2].LineBreak);
+      Assert.AreEqual("            ", parts[2].Text);
+      Assert.AreEqual(MapPartColor.Default, parts[2].ForegroundColor);
+      Assert.IsTrue(parts[2].LineBreak);
 
-      Assert.AreEqual(" OPTION:    ", fragments[3].Text);
-      Assert.AreEqual((ConsoleColor) (-1), fragments[3].ForegroundColor);
-      Assert.IsTrue(fragments[3].LineBreak);
+      Assert.AreEqual(" OPTION:    ", parts[3].Text);
+      Assert.AreEqual(MapPartColor.Default, parts[3].ForegroundColor);
+      Assert.IsTrue(parts[3].LineBreak);
 
       Assert.AreEqual(1, map.Fields.Count);
       Assert.AreEqual(9, map.Fields[0].Left);
