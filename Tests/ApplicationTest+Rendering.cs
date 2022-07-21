@@ -517,12 +517,12 @@ public partial class ApplicationTest {
       DoLoop();
       info = Console.ReadScreen(2, 4, 20);
       Assert.AreEqual("FIELD:              ", info.Text);
-      Assert.AreEqual(-1, Map.CurrentFieldIndex);
+      Assert.AreEqual(2, Map.CurrentFieldIndex);
       Assert.IsTrue(Map.SetFieldVisible("Field", true));
       DoLoop();
       info = Console.ReadScreen(2, 4, 20);
       Assert.AreEqual("FIELD:   SOME TEXT__", info.Text);
-      Assert.AreEqual(1, Map.CurrentFieldIndex);
+      Assert.AreEqual(2, Map.CurrentFieldIndex);
    }
 
    [TestMethod]

@@ -120,15 +120,6 @@ public class ApplicationEventsTest {
       Assert.AreEqual("Closed Main", EventLog.Dequeue());
    }
 
-   private static string SimplifyKeyInfo(ConsoleKeyInfo info) {
-      string result = "";
-      result += info.Modifiers.HasFlag(ConsoleModifiers.Control) ? "Ctrl+" : "";
-      result += info.Modifiers.HasFlag(ConsoleModifiers.Alt) ? "Alt+" : "";
-      result += info.Modifiers.HasFlag(ConsoleModifiers.Shift) ? "Shift+" : "";
-      result += info.Key.ToString();
-      return result;
-   }
-
    public sealed class TestMap : Map {
 
       private readonly string _name;
@@ -151,7 +142,7 @@ public class ApplicationEventsTest {
          => EventLog.Enqueue($"Deactivating {_name}");
 
       protected override void OnKeyPressed(ConsoleKeyInfo key)
-         => EventLog.Enqueue($"Pressed key {SimplifyKeyInfo(key)} on {_name}");
+         => EventLog.Enqueue($"Pressed key {Application.SimplifyKeyInfo(key)} on {_name}");
 
       protected override void OnLostFocus(string fieldName)
          => EventLog.Enqueue($"Field {fieldName} lost focus on {_name}");

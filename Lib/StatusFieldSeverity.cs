@@ -22,7 +22,7 @@
 
 namespace Lmpessoa.Mainframe;
 
-internal enum StatusMessageKind {
+internal enum StatusFieldSeverity {
    None,
    Success,
    Info,

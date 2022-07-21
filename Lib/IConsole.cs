@@ -62,5 +62,5 @@ internal interface IConsole {
 
    void Write(MapPart part);
 
-   void Write(string value, FieldState state, StatusMessageKind status);
+   void Write(string value, FieldState state, StatusFieldSeverity severity);
 }

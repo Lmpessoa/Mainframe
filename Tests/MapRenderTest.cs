@@ -253,10 +253,12 @@ public sealed class MapRenderTest {
       Assert.AreEqual(1, map.Fields.Count);
       Assert.IsTrue(map.Fields[0].IsStatus);
       Assert.IsFalse(map.Fields[0].IsDirty);
+      Assert.IsNotNull(map.StatusField);
+      Assert.AreSame(map.Fields[0], map.StatusField);
       map.SetMessage("Test message");
       Assert.IsTrue(map.Fields[0].IsDirty);
       Assert.AreEqual("Test mes", map.Fields[0].Value);
-      Assert.AreEqual(StatusMessageKind.Info, map.StatusKind);
+      Assert.AreEqual(StatusFieldSeverity.Info, map.StatusField!.Severity);
    }
 
    [TestMethod]
@@ -265,10 +267,12 @@ public sealed class MapRenderTest {
       Assert.AreEqual(1, map.Fields.Count);
       Assert.IsTrue(map.Fields[0].IsStatus);
       Assert.IsFalse(map.Fields[0].IsDirty);
+      Assert.IsNotNull(map.StatusField);
+      Assert.AreSame(map.Fields[0], map.StatusField);
       map.SetError("Test error");
       Assert.IsTrue(map.Fields[0].IsDirty);
       Assert.AreEqual("Test err", map.Fields[0].Value);
-      Assert.AreEqual(StatusMessageKind.Error, map.StatusKind);
+      Assert.AreEqual(StatusFieldSeverity.Error, map.StatusField!.Severity);
    }
 
    [TestMethod]
@@ -277,10 +281,12 @@ public sealed class MapRenderTest {
       Assert.AreEqual(1, map.Fields.Count);
       Assert.IsTrue(map.Fields[0].IsStatus);
       Assert.IsFalse(map.Fields[0].IsDirty);
+      Assert.IsNotNull(map.StatusField);
+      Assert.AreSame(map.Fields[0], map.StatusField);
       map.SetAlert("Test alert");
       Assert.IsTrue(map.Fields[0].IsDirty);
       Assert.AreEqual("Test ale", map.Fields[0].Value);
-      Assert.AreEqual(StatusMessageKind.Alert, map.StatusKind);
+      Assert.AreEqual(StatusFieldSeverity.Alert, map.StatusField!.Severity);
    }
 
    [TestMethod]
@@ -289,10 +295,12 @@ public sealed class MapRenderTest {
       Assert.AreEqual(1, map.Fields.Count);
       Assert.IsTrue(map.Fields[0].IsStatus);
       Assert.IsFalse(map.Fields[0].IsDirty);
+      Assert.IsNotNull(map.StatusField);
+      Assert.AreSame(map.Fields[0], map.StatusField);
       map.SetSuccess("Test success");
       Assert.IsTrue(map.Fields[0].IsDirty);
       Assert.AreEqual("Test suc", map.Fields[0].Value);
-      Assert.AreEqual(StatusMessageKind.Success, map.StatusKind);
+      Assert.AreEqual(StatusFieldSeverity.Success, map.StatusField!.Severity);
    }
 
    [TestMethod]
@@ -301,10 +309,12 @@ public sealed class MapRenderTest {
       Assert.AreEqual(1, map.Fields.Count);
       Assert.IsTrue(map.Fields[0].IsStatus);
       Assert.IsFalse(map.Fields[0].IsDirty);
+      Assert.IsNotNull(map.StatusField);
+      Assert.AreSame(map.Fields[0], map.StatusField);
       map.Fields[0].SetValue("Test message");
       Assert.IsTrue(map.Fields[0].IsDirty);
       Assert.AreEqual("Test mes", map["Status"]);
-      Assert.AreEqual(StatusMessageKind.None, map.StatusKind);
+      Assert.AreEqual(StatusFieldSeverity.None, map.StatusField!.Severity);
    }
 
    [TestMethod]
@@ -313,15 +323,17 @@ public sealed class MapRenderTest {
       Assert.AreEqual(1, map.Fields.Count);
       Assert.IsTrue(map.Fields[0].IsStatus);
       Assert.IsFalse(map.Fields[0].IsDirty);
+      Assert.IsNotNull(map.StatusField);
+      Assert.AreSame(map.Fields[0], map.StatusField);
       map.SetError("Test error");
       map.Fields[0].IsDirty = false;
       Assert.AreEqual("Test err", map["Status"]);
       Assert.IsFalse(map.Fields[0].IsDirty);
-      Assert.AreEqual(StatusMessageKind.Error, map.StatusKind);
+      Assert.AreEqual(StatusFieldSeverity.Error, map.StatusField!.Severity);
       map.ClearMessage();
       Assert.AreEqual("", map["Status"]);
       Assert.IsTrue(map.Fields[0].IsDirty);
-      Assert.AreEqual(StatusMessageKind.None, map.StatusKind);
+      Assert.AreEqual(StatusFieldSeverity.None, map.StatusField!.Severity);
    }
 
    [TestMethod]
@@ -444,8 +456,9 @@ public sealed class MapRenderTest {
    public void TestMapKeyPressed(ConsoleKey key, bool shift, bool result) {
       TestMap2 map = new();
       Assert.IsFalse(map.F10Pressed);
+      ConsoleCursor cursor = new(0, 0);
 
-      map.DidKeyPress(new('\0', key, shift, false, false));
+      map.DidKeyPress(new('\0', key, shift, false, false), cursor);
       Assert.AreEqual(result, map.F10Pressed);
    }
 

@@ -20,6 +20,8 @@
  * SOFTWARE.
  */
 
+using System.Diagnostics;
+
 namespace Lmpessoa.Mainframe;
 
 /// <summary>
@@ -76,7 +78,7 @@ public sealed partial class Application {
    /// </summary>
    public void PreserveGivenFieldValues() {
       AssertAppIsNotRunning();
-      PreserveValues = true;
+      _preserveValues = true;
    }
 
    /// <summary>
@@ -169,10 +171,31 @@ public sealed partial class Application {
 
 
 
+   internal static WindowBorder BorderStyle
+      => _current?._border ?? WindowBorder.Ascii;
+
+   internal static bool IsInsertMode
+      => _current?._insertMode ?? true;
+
+   internal static char PasswordChar
+      => _current?._passwordChar ?? '*';
+
+   internal static bool PreserveValues
+      => _current?._preserveValues ?? false;
+
    internal static void SetCursorPosition(int left, int top) {
       if (_current is not null) {
          _current.Console.SetCursorPosition(left, top);
       }
+   }
+
+   internal static string SimplifyKeyInfo(ConsoleKeyInfo info) {
+      string result = "";
+      result += info.Modifiers.HasFlag(ConsoleModifiers.Control) ? "Ctrl+" : "";
+      result += info.Modifiers.HasFlag(ConsoleModifiers.Alt) ? "Alt+" : "";
+      result += info.Modifiers.HasFlag(ConsoleModifiers.Shift) ? "Shift+" : "";
+      result += info.Key.ToString();
+      return result;
    }
 
    internal Application(Map initialMap, IConsole console) {
@@ -182,8 +205,6 @@ public sealed partial class Application {
 
    internal Map? CurrentMap
       => _maps.Any() ? _maps.Peek() : null;
-
-   internal bool PreserveValues { get; private set; }
 
    internal static void Push(Map map) {
       int left = 0;
@@ -214,7 +235,10 @@ public sealed partial class Application {
          map.WillActivate();
          map.FocusOnNextField();
          _current._maps.Push(map);
-         _current._viewDirty = true;
+         map.Redraw(_current.Console, true);
+         if (map.Fields.Any(f => f.IsFocusable) && map.CurrentField is Field field) {
+            _current.Console.SetCursorPosition(map.Left + field.Left, map.Top + field.Top);
+         }
       }
    }
 
@@ -234,8 +258,6 @@ public sealed partial class Application {
       }
    }
 
-   internal bool InsertMode { get; private set; } = true;
-
    internal void DoLoopStep() {
       if (CurrentMap is Map map) {
          HandleIfKeyPressed();
@@ -243,13 +265,18 @@ public sealed partial class Application {
             int cleft = Console.CursorLeft;
             int ctop = Console.CursorTop;
             Console.CursorVisible = false;
-            RedrawMapIfNeeded();
-            RedrawFieldsIfNeeded();
+            if (_viewDirty) {
+               Map? m2 = _maps.LastOrDefault(m => !m.IsInWindow);
+               foreach (Map m in _maps.SkipWhile(m => m != m2)) {
+                  m.Redraw(Console, true);
+               }
+            } else {
+               map.Redraw(Console, false);
+            }
             _viewDirty = false;
             Console.CursorLeft = cleft;
             Console.CursorTop = ctop;
-            if (CurrentMap?.Fields.Any() ?? false) {
-               map.MoveFocusTo(cleft, ctop);
+            if (CurrentMap?.CurrentField is Field field && field.IsEditable) {
                Console.CursorVisible = true;
             }
          }
@@ -293,5 +320,81 @@ public sealed partial class Application {
       }
       _needsRestore = false;
       _current = null;
+   }
+
+   private static Application? _current = null;
+
+   private readonly Map _initialMap;
+   private readonly Stack<Map> _maps = new();
+
+   private WindowBorder _border = WindowBorder.Ascii;
+   private (int Width, int Height) _consoleSize = (80, 24);
+   private bool _enforceSize = false;
+   private DateTime _inactiveSince;
+   private int _initCurSize;
+   private bool _initCtrlC;
+   private (int Width, int Height) _initBuffSize;
+   private (int Width, int Height) _initWinSize;
+   private bool _insertMode = true;
+   private bool _viewDirty = false;
+   private uint _maxIdleTime = 0;
+   private char _passwordChar = '*';
+   private bool _preserveValues = false;
+   private bool _needsRestore = false;
+   private (int Left, int Top) _windowPos = (-1, -1);
+
+   private IConsole Console { get; }
+
+   [StackTraceHidden]
+   private void AssertAppIsNotRunning() {
+      if (_current == this && IsRunning) {
+         throw new InvalidOperationException();
+      }
+   }
+
+   private void HandleIfKeyPressed() {
+      if (Console.KeyAvailable && CurrentMap is Map map) {
+         ConsoleKeyInfo key = Console.ReadKey();
+         switch (SimplifyKeyInfo(key)) {
+            case "Tab":
+               map.FocusOnNextField();
+               break;
+            case "Shift+Tab":
+               map.FocusOnPreviousField();
+               break;
+            case "Insert":
+               _insertMode = !_insertMode;
+               Console.CursorSize = _insertMode ? 1 : 100;
+               break;
+            default:
+               ConsoleCursor cursor = new(Console.CursorLeft, Console.CursorTop);
+               map.DidKeyPress(key, cursor);
+               switch (cursor.Mode) {
+                  case ConsoleCursorMode.Offset:
+                     if (cursor.Offset is (int cleft, int ctop)) {
+                        Console.CursorLeft += cleft;
+                        Console.CursorTop += ctop;
+                     }
+                     break;
+                  case ConsoleCursorMode.FieldNext:
+                     map.FocusOnNextField();
+                     break;
+                  case ConsoleCursorMode.FieldLeft:
+                     map.FocusOnFieldToLeft();
+                     break;
+                  case ConsoleCursorMode.FieldRight:
+                     map.FocusOnFieldToRight();
+                     break;
+                  case ConsoleCursorMode.FieldAbove:
+                     map.FocusOnFieldAbove(Console.CursorLeft, Console.CursorTop);
+                     break;
+                  case ConsoleCursorMode.FieldBelow:
+                     map.FocusOnFieldBelow(Console.CursorLeft, Console.CursorTop);
+                     break;
+               }
+               break;
+         }
+         _inactiveSince = DateTime.Now;
+      }
    }
 }

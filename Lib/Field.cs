@@ -35,7 +35,7 @@ internal enum FieldType : byte {
 
 internal sealed class Field {
 
-   internal Field(Map parent, int left, int top, string arg) {
+   public Field(Map parent, int left, int top, string arg) {
       Match match = Regex.Match(arg, "^([A-Za-z][A-Za-z0-9\\-_]*):([A-Z]{3})(\\[\\d+\\]|\\([^\\]]+\\))?$");
       if (!match.Success) {
          throw new InvalidFieldException($"Invalid field definition", left, top);
@@ -72,29 +72,29 @@ internal sealed class Field {
       _value = new('\0', Width);
    }
 
-   internal int? Group { get; init; }
+   public int? Group { get; init; }
 
-   internal bool IsChecked
+   public bool IsChecked
       => Group is not null && Value.Trim('\0').Trim() != "";
 
-   internal bool IsDirty { get; set; } = false;
+   public bool IsDirty { get; set; } = false;
 
-   internal bool IsEditable
+   public bool IsEditable
       => Type.HasFlag(FieldType.Editable);
 
-   internal bool IsFocusable
+   public bool IsFocusable
       => Type.HasFlag(FieldType.Focusable) && IsVisible;
 
-   internal bool IsProtected
+   public bool IsProtected
       => Type.HasFlag(FieldType.Protected);
 
-   internal bool IsReadOnly
+   public bool IsReadOnly
       => !Type.HasFlag(FieldType.Editable);
 
-   internal bool IsStatus
+   public bool IsStatus
       => Type.HasFlag(FieldType.Status);
 
-   internal bool IsVisible {
+   public bool IsVisible {
       get => _visible;
       set {
          if (_visible != value) {
@@ -104,25 +104,135 @@ internal sealed class Field {
       }
    }
 
-   internal int Left { get; init; }
+   public int Left { get; init; }
 
-   internal string? Mask { get; init; } = null;
+   public string? Mask { get; init; } = null;
 
-   internal string Name { get; init; }
+   public string Name { get; init; }
 
-   internal Map Parent { get; init; }
+   public Map Parent { get; init; }
 
-   internal int Top { get; init; }
+   public StatusFieldSeverity Severity { get; set; }
 
-   internal string Value
+   public int Top { get; init; }
+
+   public string Value
       => _value;
 
-   internal int Width { get; init; }
+   public int Width { get; init; }
 
-   internal bool HasCursor(int left, int top)
-      => left >= Parent.Left + Left && left  <= Parent.Left + Left + Width + 1 && top == Parent.Top + Top;
+   public bool DidKeyPress(ConsoleKeyInfo key, ConsoleCursor cursor) {
+      string keyName = Application.SimplifyKeyInfo(key);
+      int pos;
+      switch (keyName) {
+         case "LeftArrow":
+            if (cursor.Left == Parent.Left + Left) {
+               cursor.MoveFieldLeft();
+            } else if (cursor.Left > 0) {
+               cursor.MoveLeft();
+            }
+            return true;
+         case "RightArrow":
+            if (cursor.Left == Parent.Left + Left + Width) {
+               cursor.MoveFieldRight();
+            } else {
+               cursor.MoveRight();
+            }
+            return true;
+         case "UpArrow":
+            cursor.MoveFieldAbove();
+            return true;
+         case "DownArrow":
+            cursor.MoveFieldBelow();
+            return true;
+         case "Delete":
+            pos = cursor.Left - Left - Parent.Left;
+            if (pos < Width) {
+               SetValue(Value.Remove(pos, 1));
+            }
+            return true;
+         case "Backspace":
+            pos = cursor.Left - Left - Parent.Left;
+            if (pos > 0) {
+               if (SetValue(Value.Remove(pos - 1, 1))) {
+                  cursor.MoveLeft();
+               }
+            }
+            return true;
+         case "Home":
+            cursor.MoveLeft(cursor.Left - Parent.Left - Left);
+            return true;
+         case "End":
+            cursor.MoveRight(cursor.Left - Parent.Left - Left + Value.TrimEnd('\0').Length);
+            return true;
+         default:
+            if (key.Modifiers is 0 or ConsoleModifiers.Shift && (key.KeyChar == ' '
+                  || char.IsLetterOrDigit(key.KeyChar)
+                  || char.IsPunctuation(key.KeyChar)
+                  || char.IsSymbol(key.KeyChar))) {
+               string value = Value;
+               pos = cursor.Left - Parent.Left - Left;
+               if (Application.IsInsertMode && Mask != "/") {
+                  if (value[^1] != '\0') {
+                     break;
+                  }
+                  value = value[..^1];
+               } else {
+                  value = value.Remove(pos, 1);
+               }
+               value = value.Insert(pos, key.KeyChar.ToString());
+               if (SetValue(value)) {
+                  if (cursor.Left + 1 >= Parent.Left + Left + Width) {
+                     cursor.MoveNextField();
+                  } else {
+                     cursor.MoveRight();
+                  }
+               }
+               return true;
+            }
+            break;
+      }
+      return false;
+   }
 
-   internal bool SetValue(string value, bool propagate = true) {
+   public bool HasCursor(int left, int top)
+      => left >= Parent.Left + Left && left <= Parent.Left + Left + Width + 1 && top == Parent.Top + Top;
+
+   public void Redraw(IConsole console, bool active) {
+      console.SetCursorPosition(Parent.Left + Left, Parent.Top + Top);
+      StatusFieldSeverity fstatus = StatusFieldSeverity.None;
+      FieldState fstate = FieldState.None;
+      string fvalue;
+      if (!IsVisible) {
+         fvalue = new string(' ', Width);
+      } else if (IsEditable) {
+         fstate = active ? FieldState.Editing : FieldState.Editable;
+         fvalue = Value;
+         if (IsProtected) {
+            char passwdChar = Application.PasswordChar;
+            string masked = "";
+            foreach (char ch in fvalue) {
+               masked += ch == '\0' ? '\0' : passwdChar;
+            }
+            fvalue = masked;
+         }
+      } else {
+         fvalue = Value.Trim('\0');
+         if (fvalue.Length < Width) {
+            fvalue += new string(' ', Width - fvalue.Length);
+         }
+         if (IsStatus) {
+            fstatus = Severity;
+         }
+      }
+      if (!Application.PreserveValues && !active) {
+         fvalue = fvalue.ToUpper();
+      }
+      console.Write(fvalue[0..Math.Min(fvalue.Length, Width)], fstate, fstatus);
+      IsDirty = false;
+   }
+
+   public bool SetValue(string value, bool propagate = true) {
       value ??= "";
       if (IsEditable && value.Length < Width) {
          value += new string('\0', Width - value.Length);
@@ -130,6 +240,7 @@ internal sealed class Field {
          value = value[0..Width];
       }
       if (_value != value && AcceptsValue(value)) {
+         Severity = StatusFieldSeverity.None;
          _value = value;
          IsDirty = true;
          if (propagate) {
@@ -169,9 +280,7 @@ internal sealed class Field {
    }
 
    private void ValueChanged() {
-      if (IsStatus) {
-         Parent.StatusKind = StatusMessageKind.None;
-      } else if (Group is not null and not 0 && Value.Trim() != "") {
+      if (Group is not null and not 0 && Value.Trim() != "") {
          foreach (Field field in Parent.Fields.Where(f => f != this && f.Group == Group)) {
             field.SetValue("", false);
          }

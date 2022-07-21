@@ -139,12 +139,12 @@ internal sealed class MockConsole : IConsole {
       InternalWrite(part.Text, _bg, _fg);
    }
 
-   public void Write(string value, FieldState state, StatusMessageKind status) {
+   public void Write(string value, FieldState state, StatusFieldSeverity severity) {
       char _bg = state is FieldState.Focused or FieldState.Editing && _activeBack ? '8' : '0';
-      char _fg = status switch {
-         StatusMessageKind.Success => '2',
-         StatusMessageKind.Alert => '6',
-         StatusMessageKind.Error => '4',
+      char _fg = severity switch {
+         StatusFieldSeverity.Success => '2',
+         StatusFieldSeverity.Alert => '6',
+         StatusFieldSeverity.Error => '4',
          _ => 'F',
       };
       InternalWrite(value.Replace('\0', state is FieldState.Editable or FieldState.Editing ? '_' : ' '), _bg, _fg);

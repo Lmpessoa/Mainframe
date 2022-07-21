@@ -181,7 +181,7 @@ public partial class ApplicationTest {
    public void TestInsertOffPushesText() {
       Map.CurrentField!.SetValue("TEST");
       DoLoop();
-      Assert.IsTrue(App.InsertMode);
+      Assert.IsTrue(Application.IsInsertMode);
       Assert.AreEqual(1, Console.CursorSize);
       MockConsoleInfo info = Console.ReadScreen(11, 4, 8);
       Assert.AreEqual("TEST____", info.Text);
@@ -196,11 +196,11 @@ public partial class ApplicationTest {
    public void TestInsertOnOverwritesText() {
       Map.CurrentField!.SetValue("TEST");
       DoLoop();
-      Assert.IsTrue(App.InsertMode);
+      Assert.IsTrue(Application.IsInsertMode);
       Assert.AreEqual(1, Console.CursorSize);
       Console.SendKey(ConsoleKey.Insert);
       DoLoop();
-      Assert.IsFalse(App.InsertMode);
+      Assert.IsFalse(Application.IsInsertMode);
       Assert.AreEqual(100, Console.CursorSize);
       MockConsoleInfo info = Console.ReadScreen(11, 4, 8);
       Assert.AreEqual("TEST____", info.Text);
@@ -212,7 +212,7 @@ public partial class ApplicationTest {
       Console.SendKey(ConsoleKey.Insert);
       Console.SendKeys("A");
       DoLoop(3);
-      Assert.IsTrue(App.InsertMode);
+      Assert.IsTrue(Application.IsInsertMode);
       Assert.AreEqual(1, Console.CursorSize);
       info = Console.ReadScreen(11, 4, 8);
       Assert.AreEqual("ReAST___", info.Text);

@@ -153,7 +153,7 @@ public sealed class MockConsoleTest {
    public void TestEnlargeWindowSize() {
       Assert.AreEqual(80, console.WindowWidth);
       Assert.AreEqual(24, console.WindowHeight);
-      console.Write("Test",FieldState.None, StatusMessageKind.None);
+      console.Write("Test",FieldState.None, StatusFieldSeverity.None);
       console.SetWindowSize(120, 30);
       Assert.AreEqual(120, console.WindowWidth);
       Assert.AreEqual(30, console.WindowHeight);
@@ -165,7 +165,7 @@ public sealed class MockConsoleTest {
    public void TestShrinkWindowSize() {
       Assert.AreEqual(80, console.WindowWidth);
       Assert.AreEqual(24, console.WindowHeight);
-      console.Write("Test", FieldState.None, StatusMessageKind.None);
+      console.Write("Test", FieldState.None, StatusFieldSeverity.None);
       console.SetWindowSize(40, 10);
       Assert.AreEqual(40, console.WindowWidth);
       Assert.AreEqual(10, console.WindowHeight);

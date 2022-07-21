@@ -127,23 +127,23 @@ internal sealed class SystemConsole : IConsole {
       Console.Write(part.Text);
    }
 
-   public void Write(string value, FieldState state, StatusMessageKind status) {
+   public void Write(string value, FieldState state, StatusFieldSeverity severity) {
       Console.BackgroundColor = _defaultBackground;
       Console.ForegroundColor = _fieldForeground;
       if (state is FieldState.Focused or FieldState.Editing) {
          Console.BackgroundColor = _activeBackground ?? _defaultBackground;
       }
-      if (status is not StatusMessageKind.None) {
-         ConsoleColor color = status switch {
-            StatusMessageKind.Success => ConsoleColor.DarkGreen,
-            StatusMessageKind.Alert => ConsoleColor.DarkYellow,
-            StatusMessageKind.Error => ConsoleColor.DarkRed,
+      if (severity is not StatusFieldSeverity.None) {
+         ConsoleColor color = severity switch {
+            StatusFieldSeverity.Success => ConsoleColor.DarkGreen,
+            StatusFieldSeverity.Alert => ConsoleColor.DarkYellow,
+            StatusFieldSeverity.Error => ConsoleColor.DarkRed,
             _ => _fieldForeground,
          };
-         ConsoleColor altColor = status switch {
-            StatusMessageKind.Success => ConsoleColor.Green,
-            StatusMessageKind.Alert => ConsoleColor.Yellow,
-            StatusMessageKind.Error => ConsoleColor.Red,
+         ConsoleColor altColor = severity switch {
+            StatusFieldSeverity.Success => ConsoleColor.Green,
+            StatusFieldSeverity.Alert => ConsoleColor.Yellow,
+            StatusFieldSeverity.Error => ConsoleColor.Red,
             _ => _defaultForeground,
          };
          Console.ForegroundColor = (_defaultBackground > ConsoleColor.Gray
