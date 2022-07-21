@@ -41,11 +41,11 @@ public partial class ApplicationTest {
    }
 
 
-   protected MockConsole Console { get; private set; }
+   private MockConsole Console { get; set; }
 
-   protected Application App { get; private set; }
+   private Application App { get; set; }
 
-   protected TestMap Map { get; private set; }
+   private TestMap Map { get; set; }
 
    protected void DoLoop(int count = 1) {
       for (int i = 0; i < count; ++i) {
@@ -67,7 +67,7 @@ public partial class ApplicationTest {
 internal static class ConsoleInfoExtension {
 
    public static void AssertIs(this MockConsoleInfo info, string text, string fgcolors, string? bgcolors = null) {
-      Assert.AreEqual(text, info.ScreenText);
+      Assert.AreEqual(text, info.Text);
       Assert.AreEqual(fgcolors, info.Foreground);
       if (bgcolors is not null) {
          Assert.AreEqual(bgcolors, info.Background);

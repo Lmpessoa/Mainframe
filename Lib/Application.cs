@@ -56,7 +56,7 @@ public sealed partial class Application {
    /// 
    /// </summary>
    /// <param name="initialMap"></param>
-   public Application(Map initialMap) : this(initialMap, SystemConsole.Instance) { }
+   public Application(Map initialMap) : this(initialMap, new SystemConsole()) { }
 
    /// <summary>
    /// 
@@ -129,17 +129,7 @@ public sealed partial class Application {
    /// </summary>
    public void UseActiveFieldBackground() {
       AssertAppIsNotRunning();
-      _colors.UseActiveFieldBackground();
-   }
-
-   /// <summary>
-   /// 
-   /// </summary>
-   /// <param name="fgcolor"></param>
-   /// <param name="bgcolor"></param>
-   public void UseActiveFieldColors(ConsoleColor fgcolor, ConsoleColor bgcolor) {
-      AssertAppIsNotRunning();
-      _colors.UseActiveFieldColors(fgcolor, bgcolor);
+      Console.UseActiveFieldBackground();
    }
 
    /// <summary>
@@ -156,16 +146,16 @@ public sealed partial class Application {
    /// <param name="color"></param>
    public void UseCommandColorInBackground(ConsoleColor color) {
       AssertAppIsNotRunning();
-      _colors.UseCommandColors(_colors.DefaultBackgroundColor, color);
+      Console.UseHighlightColorInBackground(color);
    }
 
    /// <summary>
    /// 
    /// </summary>
    /// <param name="color"></param>
-   public void UseCommandColorInForeground(ConsoleColor color) {
+   public void UseHighlightColorInForeground(ConsoleColor color) {
       AssertAppIsNotRunning();
-      _colors.UseCommandColors(color, _colors.DefaultBackgroundColor);
+      Console.UseHighlightColorInForeground(color);
    }
 
    /// <summary>
@@ -188,7 +178,6 @@ public sealed partial class Application {
    internal Application(Map initialMap, IConsole console) {
       _initialMap = initialMap ?? throw new ArgumentNullException(nameof(initialMap));
       Console = console ?? throw new ArgumentNullException(nameof(console));
-      _colors = new(console);
    }
 
    internal Map? CurrentMap
@@ -247,9 +236,6 @@ public sealed partial class Application {
 
    internal bool InsertMode { get; private set; } = true;
 
-   internal bool UsesActiveFieldColors
-      => _colors.UsesActiveFieldColors;
-
    internal void DoLoopStep() {
       if (CurrentMap is Map map) {
          HandleIfKeyPressed();
@@ -296,7 +282,6 @@ public sealed partial class Application {
       }
       _maps.Clear();
       if (_needsRestore) {
-         Console.ResetColor();
          Console.Clear();
          if (_enforceSize || _initWinSize.Width < _consoleSize.Width || _initWinSize.Height < _consoleSize.Height) {
             Console.SetWindowSize(_initWinSize.Width, _initWinSize.Height);

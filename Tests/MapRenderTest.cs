@@ -228,7 +228,7 @@ public sealed class MapRenderTest {
       map.Fields[0].SetValue("01/01");
       Assert.IsTrue(map.Fields[0].IsDirty);
       Assert.AreEqual("01/01", map["Field"]);
-      Assert.AreEqual("01/01\t\t\t", map.Fields[0].Value);
+      Assert.AreEqual("01/01\0\0\0", map.Fields[0].Value);
    }
 
    [TestMethod]
@@ -240,7 +240,7 @@ public sealed class MapRenderTest {
       map.Fields[0].SetValue("01/01");
       Assert.IsTrue(map.Fields[0].IsDirty);
       Assert.AreEqual("01/01", map["Field"]);
-      Assert.AreEqual("01/01\t\t\t", map.Fields[0].Value);
+      Assert.AreEqual("01/01\0\0\0", map.Fields[0].Value);
       map.Fields[0].IsDirty = false;
       Assert.IsFalse(map.Fields[0].IsDirty);
       map.Fields[0].SetValue("01/01");

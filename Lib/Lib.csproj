@@ -21,10 +21,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ConsoleColorHelper.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\Resources\Package-Icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
+    <None Include="ConsoleColorHelper.cs" />
   </ItemGroup>
 
 </Project>

@@ -22,45 +22,9 @@
 
 namespace Lmpessoa.Mainframe;
 
-internal interface IConsole {
-
-   int BufferWidth { get; }
-
-   int BufferHeight { get; }
-
-   int CursorLeft { get; set; }
-
-   int CursorTop { get; set; }
-
-   int CursorSize { get; set; }
-
-   bool CursorVisible { get; set; }
-
-   bool KeyAvailable { get; }
-
-   bool TreatControlCAsInput { get; set; }
-
-   int WindowWidth { get; }
-
-   int WindowHeight { get; }
-
-   void Clear();
-
-   ConsoleKeyInfo ReadKey();
-
-   void SetBufferSize(int width, int height);
-
-   void SetCursorPosition(int left, int top);
-
-   void SetWindowSize(int width, int height);
-
-   void UseActiveFieldBackground();
-
-   void UseHighlightColorInBackground(ConsoleColor color);
-
-   void UseHighlightColorInForeground(ConsoleColor color);
-
-   void Write(MapPart part);
-
-   void Write(string value, FieldState state, StatusMessageKind status);
+internal enum FieldState {
+   None,
+   Focused,
+   Editable,
+   Editing,
 }

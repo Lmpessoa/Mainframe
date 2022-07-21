@@ -35,13 +35,13 @@ public partial class ApplicationTest {
 
       info = Console.ReadScreen(2, 3, 30);
       info.AssertIs("LABEL:   SOME VERY LONG TEXT  ",
-                    "777777777EEEEEEEEEEEEEEEEEEEE7",
-                    "000000000888888888888888888880");
+                    "777777777FFFFFFFFFFFFFFFFFFFF7",
+                    "000000000000000000000000000000");
 
       info = Console.ReadScreen(2, 4, 30);
       info.AssertIs("FIELD:   ____________________ ",
                     "777777777FFFFFFFFFFFFFFFFFFFF7",
-                    "000000000222222222222222222220");
+                    "000000000000000000000000000000");
 
       info = Console.ReadScreen(2, 12, 8);
       info.AssertIs("PF1 Help",
@@ -134,7 +134,7 @@ public partial class ApplicationTest {
    [TestMethod]
    public void TestCommandColorInForeground() {
       App.Stop();
-      App.UseCommandColorInForeground(ConsoleColor.Yellow);
+      App.UseHighlightColorInForeground(ConsoleColor.Yellow);
       App.Start();
       DoLoop();
 
@@ -169,20 +169,6 @@ public partial class ApplicationTest {
       info.AssertIs("FIELD:   ____________________ ",
                     "777777777FFFFFFFFFFFFFFFFFFFF7",
                     "000000000888888888888888888880");
-   }
-
-   [TestMethod]
-   public void TestActiveFieldChosenColors() {
-      App.Stop();
-      App.UseActiveFieldColors(ConsoleColor.Black, ConsoleColor.Gray);
-      App.Start();
-      DoLoop();
-
-      Assert.AreEqual(1, Map.CurrentFieldIndex);
-      MockConsoleInfo info = Console.ReadScreen(2, 4, 30);
-      info.AssertIs("FIELD:   ____________________ ",
-                    "777777777000000000000000000007",
-                    "000000000777777777777777777770");
    }
 
    [TestMethod]
@@ -233,7 +219,7 @@ public partial class ApplicationTest {
       info = Console.ReadScreen(23, 4, 34);
       info.AssertIs("________                          ",
                     "FFFFFFFF77777777777777777777777777",
-                    "2222222200000000000000000000000000");
+                    "0000000000000000000000000000000000");
 
       info = Console.ReadScreen(23, 18, 34);
       info.AssertIs("                                  ",
@@ -390,7 +376,7 @@ public partial class ApplicationTest {
       Map.SetError("Some error X");
       DoLoop();
       MockConsoleInfo info = Console.ReadScreen(11, 10, 14);
-      Assert.AreEqual("SOME ERROR X  ", info.ScreenText);
+      Assert.AreEqual("SOME ERROR X  ", info.Text);
       Assert.AreEqual("Some error X", Map.Fields[9].Value);
       App.Stop();
       App.PreserveGivenFieldValues();
@@ -398,7 +384,7 @@ public partial class ApplicationTest {
       Map.SetError("Some error X");
       DoLoop();
       info = Console.ReadScreen(11, 10, 14);
-      Assert.AreEqual("Some error X  ", info.ScreenText);
+      Assert.AreEqual("Some error X  ", info.Text);
       Assert.AreEqual("Some error X", Map.Fields[9].Value);
    }
 
@@ -409,15 +395,15 @@ public partial class ApplicationTest {
       Map.Fields[1].SetValue("Some value X");
       DoLoop();
       MockConsoleInfo info = Console.ReadScreen(11, 4, 14);
-      Assert.AreEqual("Some value X__", info.ScreenText);
-      Assert.AreEqual("Some value X\t\t\t\t\t\t\t\t", Map.Fields[1].Value);
+      Assert.AreEqual("Some value X__", info.Text);
+      Assert.AreEqual("Some value X\0\0\0\0\0\0\0\0", Map.Fields[1].Value);
       Assert.AreEqual("Some value X", Map["Field"]);
       Console.SendKey(ConsoleKey.Tab);
       DoLoop();
       info = Console.ReadScreen(11, 4, 14);
       Assert.AreEqual(2, Map.CurrentFieldIndex);
-      Assert.AreEqual("SOME VALUE X__", info.ScreenText);
-      Assert.AreEqual("SOME VALUE X\t\t\t\t\t\t\t\t", Map.Fields[1].Value);
+      Assert.AreEqual("SOME VALUE X__", info.Text);
+      Assert.AreEqual("SOME VALUE X\0\0\0\0\0\0\0\0", Map.Fields[1].Value);
       Assert.AreEqual("SOME VALUE X", Map["Field"]);
       App.Stop();
       App.PreserveGivenFieldValues();
@@ -425,8 +411,8 @@ public partial class ApplicationTest {
       Map.Fields[1].SetValue("Some value X");
       DoLoop();
       info = Console.ReadScreen(11, 4, 14);
-      Assert.AreEqual("Some value X__", info.ScreenText);
-      Assert.AreEqual("Some value X\t\t\t\t\t\t\t\t", Map.Fields[1].Value);
+      Assert.AreEqual("Some value X__", info.Text);
+      Assert.AreEqual("Some value X\0\0\0\0\0\0\0\0", Map.Fields[1].Value);
       Assert.AreEqual("Some value X", Map["Field"]);
    }
 
@@ -440,7 +426,7 @@ public partial class ApplicationTest {
       Assert.AreEqual(0, Map.Fields[3].Group);
       Assert.AreEqual(11, Map.Fields[3].Left);
       Assert.AreEqual(6, Map.Fields[3].Top);
-      Assert.AreEqual("\t", Map.Fields[3].Value);
+      Assert.AreEqual("\0", Map.Fields[3].Value);
       Assert.AreEqual("", Map["Summer"]);
       Assert.IsFalse(Map.Fields[3].IsChecked);
       Assert.IsTrue(Map.Fields[3].SetValue("x"));
@@ -507,15 +493,15 @@ public partial class ApplicationTest {
       Map.Fields[0].SetValue("Some text");
       DoLoop();
       MockConsoleInfo info = Console.ReadScreen(2, 3, 20);
-      Assert.AreEqual("LABEL:   SOME TEXT  ", info.ScreenText);
+      Assert.AreEqual("LABEL:   SOME TEXT  ", info.Text);
       Assert.IsTrue(Map.SetFieldVisible("Label", false));
       DoLoop();
       info = Console.ReadScreen(2, 3, 20);
-      Assert.AreEqual("LABEL:              ", info.ScreenText);
+      Assert.AreEqual("LABEL:              ", info.Text);
       Assert.IsTrue(Map.SetFieldVisible("Label", true));
       DoLoop();
       info = Console.ReadScreen(2, 3, 20);
-      Assert.AreEqual("LABEL:   SOME TEXT  ", info.ScreenText);
+      Assert.AreEqual("LABEL:   SOME TEXT  ", info.Text);
    }
 
    [TestMethod]
@@ -526,16 +512,16 @@ public partial class ApplicationTest {
       Map.Fields[1].SetValue("Some text");
       DoLoop();
       MockConsoleInfo info = Console.ReadScreen(2, 4, 20);
-      Assert.AreEqual("FIELD:   Some text__", info.ScreenText);
+      Assert.AreEqual("FIELD:   Some text__", info.Text);
       Assert.IsTrue(Map.SetFieldVisible("Field", false));
       DoLoop();
       info = Console.ReadScreen(2, 4, 20);
-      Assert.AreEqual("FIELD:              ", info.ScreenText);
+      Assert.AreEqual("FIELD:              ", info.Text);
       Assert.AreEqual(-1, Map.CurrentFieldIndex);
       Assert.IsTrue(Map.SetFieldVisible("Field", true));
       DoLoop();
       info = Console.ReadScreen(2, 4, 20);
-      Assert.AreEqual("FIELD:   SOME TEXT__", info.ScreenText);
+      Assert.AreEqual("FIELD:   SOME TEXT__", info.Text);
       Assert.AreEqual(1, Map.CurrentFieldIndex);
    }
 
@@ -546,12 +532,12 @@ public partial class ApplicationTest {
       Map.Fields[9].SetValue("Some message");
       DoLoop();
       MockConsoleInfo info = Console.ReadScreen(2, 10, 20);
-      Assert.AreEqual("MESSAGE: SOME MESSAG", info.ScreenText);
+      Assert.AreEqual("MESSAGE: SOME MESSAG", info.Text);
       Assert.IsFalse(Map.SetFieldVisible("Status", false));
       DoLoop();
       Assert.IsTrue(Map.Fields[9].IsVisible);
       info = Console.ReadScreen(2, 10, 20);
-      Assert.AreEqual("MESSAGE: SOME MESSAG", info.ScreenText);
+      Assert.AreEqual("MESSAGE: SOME MESSAG", info.Text);
    }
 
    [TestMethod]
@@ -577,11 +563,11 @@ public partial class ApplicationTest {
       new LargeTestMap().Show();
       DoLoop();
       MockConsoleInfo info = Console.ReadScreen(2, 1, 10);
-      Assert.AreEqual("SCREEN 002", info.ScreenText);
+      Assert.AreEqual("SCREEN 002", info.Text);
       info = Console.ReadScreen(80, 6, 33);
-      Assert.AreEqual("^ cropped at width 80 beyond this", info.ScreenText);
+      Assert.AreEqual("^ cropped at width 80 beyond this", info.Text);
       info = Console.ReadScreen(2, 29, 20);
-      Assert.AreEqual("This line is visible", info.ScreenText);
+      Assert.AreEqual("This line is visible", info.Text);
    }
 
    public class LargeTestMap : Map { }

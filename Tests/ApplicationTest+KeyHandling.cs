@@ -69,7 +69,7 @@ public partial class ApplicationTest {
       DoLoop(2);
       Assert.AreEqual(2, Map.CurrentFieldIndex);
       info = Console.ReadScreen(11, 4, 5);
-      info.AssertIs("_____", "FFFFF", "22222");
+      info.AssertIs("_____", "FFFFF", "00000");
       info = Console.ReadScreen(11, 5, 5);
       info.AssertIs("_____", "FFFFF", "88888");
    }
@@ -90,7 +90,7 @@ public partial class ApplicationTest {
       DoLoop(2);
       Assert.AreEqual(2, Map.CurrentFieldIndex);
       info = Console.ReadScreen(11, 4, 5);
-      info.AssertIs("_____", "FFFFF", "22222");
+      info.AssertIs("_____", "FFFFF", "00000");
       info = Console.ReadScreen(11, 5, 5);
       info.AssertIs("_____", "FFFFF", "88888");
    }
@@ -131,7 +131,7 @@ public partial class ApplicationTest {
       Assert.AreEqual(0, Console.CursorTop);
       Assert.AreEqual(-1, Map.CurrentFieldIndex);
       info = Console.ReadScreen(11, 4, 5);
-      info.AssertIs("_____", "FFFFF", "22222");
+      info.AssertIs("_____", "FFFFF", "00000");
 
       Console.SendKey(ConsoleKey.Tab);
       DoLoop(2);
@@ -158,7 +158,7 @@ public partial class ApplicationTest {
       Assert.AreEqual(0, Console.CursorLeft);
       Assert.AreEqual(0, Console.CursorTop);
       info = Console.ReadScreen(11, 4, 5);
-      info.AssertIs("_____", "FFFFF", "22222");
+      info.AssertIs("_____", "FFFFF", "00000");
 
       Console.SendKey(KeyModifier.Shift, ConsoleKey.Tab);
       DoLoop(2);
@@ -184,12 +184,12 @@ public partial class ApplicationTest {
       Assert.IsTrue(App.InsertMode);
       Assert.AreEqual(1, Console.CursorSize);
       MockConsoleInfo info = Console.ReadScreen(11, 4, 8);
-      Assert.AreEqual("TEST____", info.ScreenText);
+      Assert.AreEqual("TEST____", info.Text);
 
       Console.SendKeys("Re");
       DoLoop(3);
       info = Console.ReadScreen(11, 4, 8);
-      Assert.AreEqual("ReTEST__", info.ScreenText);
+      Assert.AreEqual("ReTEST__", info.Text);
    }
 
    [TestMethod]
@@ -203,19 +203,19 @@ public partial class ApplicationTest {
       Assert.IsFalse(App.InsertMode);
       Assert.AreEqual(100, Console.CursorSize);
       MockConsoleInfo info = Console.ReadScreen(11, 4, 8);
-      Assert.AreEqual("TEST____", info.ScreenText);
+      Assert.AreEqual("TEST____", info.Text);
 
       Console.SendKeys("Re");
       DoLoop(3);
       info = Console.ReadScreen(11, 4, 8);
-      Assert.AreEqual("ReST____", info.ScreenText);
+      Assert.AreEqual("ReST____", info.Text);
       Console.SendKey(ConsoleKey.Insert);
       Console.SendKeys("A");
       DoLoop(3);
       Assert.IsTrue(App.InsertMode);
       Assert.AreEqual(1, Console.CursorSize);
       info = Console.ReadScreen(11, 4, 8);
-      Assert.AreEqual("ReAST___", info.ScreenText);
+      Assert.AreEqual("ReAST___", info.Text);
    }
 
    [TestMethod]
@@ -223,7 +223,7 @@ public partial class ApplicationTest {
       Map.CurrentField!.SetValue("-TEST-");
       DoLoop();
       MockConsoleInfo info = Console.ReadScreen(11, 4, 8);
-      Assert.AreEqual("-TEST-__", info.ScreenText);
+      Assert.AreEqual("-TEST-__", info.Text);
       Assert.AreEqual(11, Console.CursorLeft);
 
       Console.SendKey(ConsoleKey.End);
@@ -234,7 +234,7 @@ public partial class ApplicationTest {
       DoLoop(2);
       Assert.AreEqual(16, Console.CursorLeft);
       info = Console.ReadScreen(11, 4, 8);
-      Assert.AreEqual("-TEST___", info.ScreenText);
+      Assert.AreEqual("-TEST___", info.Text);
 
       Console.SendKey(ConsoleKey.Home);
       DoLoop();
@@ -244,7 +244,7 @@ public partial class ApplicationTest {
       DoLoop(2);
       Assert.AreEqual(11, Console.CursorLeft);
       info = Console.ReadScreen(11, 4, 8);
-      Assert.AreEqual("TEST____", info.ScreenText);
+      Assert.AreEqual("TEST____", info.Text);
    }
 
    [TestMethod]
@@ -254,7 +254,7 @@ public partial class ApplicationTest {
       Console.SendKeys("X");
       DoLoop();
       MockConsoleInfo info = Console.ReadScreen(26, 4, 6);
-      Assert.AreEqual("____X ", info.ScreenText);
+      Assert.AreEqual("____X ", info.Text);
       Assert.AreEqual(2, Map.CurrentFieldIndex);
       Assert.AreEqual(5, Console.CursorTop);
       Assert.AreEqual(11, Console.CursorLeft);
@@ -475,8 +475,8 @@ public partial class ApplicationTest {
          DoLoop();
       }
       MockConsoleInfo info = Console.ReadScreen(11, 4, 14);
-      Assert.AreEqual("SOME VALUE X__", info.ScreenText);
-      Assert.AreEqual("SOME VALUE X\t\t\t\t\t\t\t\t", Map.Fields[1].Value);
+      Assert.AreEqual("SOME VALUE X__", info.Text);
+      Assert.AreEqual("SOME VALUE X\0\0\0\0\0\0\0\0", Map.Fields[1].Value);
       Assert.AreEqual("SOME VALUE X", Map["Field"]);
       App.Stop();
       App.PreserveGivenFieldValues();
@@ -489,8 +489,8 @@ public partial class ApplicationTest {
          DoLoop();
       }
       info = Console.ReadScreen(11, 4, 14);
-      Assert.AreEqual("Some value X__", info.ScreenText);
-      Assert.AreEqual("Some value X\t\t\t\t\t\t\t\t", Map.Fields[1].Value);
+      Assert.AreEqual("Some value X__", info.Text);
+      Assert.AreEqual("Some value X\0\0\0\0\0\0\0\0", Map.Fields[1].Value);
       Assert.AreEqual("Some value X", Map["Field"]);
    }
 

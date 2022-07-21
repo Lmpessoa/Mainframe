@@ -102,11 +102,11 @@ public sealed class MockConsoleTest {
    public void TestWritePosition1() {
       Assert.AreEqual(0, console.CursorLeft);
       Assert.AreEqual(0, console.CursorTop);
-      console.Write("Test");
+      console.Write(MapPart.Parse("Test").First());
       Assert.AreEqual(4, console.CursorLeft);
       Assert.AreEqual(0, console.CursorTop);
       MockConsoleInfo read = console.ReadScreen(0, 0, 4);
-      Assert.AreEqual("Test", read.ScreenText);
+      Assert.AreEqual("Test", read.Text);
    }
 
    [TestMethod]
@@ -114,78 +114,62 @@ public sealed class MockConsoleTest {
       console.SetCursorPosition(38, 12);
       Assert.AreEqual(38, console.CursorLeft);
       Assert.AreEqual(12, console.CursorTop);
-      console.Write("Test");
+      console.Write(MapPart.Parse("Test").First());
       Assert.AreEqual(42, console.CursorLeft);
       Assert.AreEqual(12, console.CursorTop);
       MockConsoleInfo read = console.ReadScreen(38, 12, 4);
-      Assert.AreEqual("Test", read.ScreenText);
+      Assert.AreEqual("Test", read.Text);
       read = console.ReadScreen(0, 0, 4);
-      Assert.AreEqual("    ", read.ScreenText);
+      Assert.AreEqual("    ", read.Text);
    }
 
    [TestMethod]
    public void TestWriteColours1() {
-      Assert.AreEqual(ConsoleColor.Black, console.BackgroundColor);
-      Assert.AreEqual(ConsoleColor.Gray, console.ForegroundColor);
-      console.Write("Test");
+      console.Write(MapPart.Parse("Test").First());
       MockConsoleInfo read = console.ReadScreen(0, 0, 4);
-      Assert.AreEqual("Test", read.ScreenText);
-      Assert.AreEqual("7777", read.Foreground);
-      Assert.AreEqual("0000", read.Background);
+      read.AssertIs("Test", "7777", "0000");
    }
 
    [TestMethod]
    public void TestWriteColours2() {
       MockConsoleInfo read = console.ReadScreen(0, 0, 4);
-      Assert.AreEqual("7777", read.Foreground);
-      Assert.AreEqual("0000", read.Background);
-      console.ForegroundColor = ConsoleColor.Yellow;
-      console.BackgroundColor = ConsoleColor.DarkBlue;
-      console.Write("Test");
+      read.AssertIs("    ", "7777", "0000");
+      console.Write(MapPart.Parse("Test", "EEEE", "1111").First());
       read = console.ReadScreen(0, 0, 4);
-      Assert.AreEqual("Test", read.ScreenText);
-      Assert.AreEqual("EEEE", read.Foreground);
-      Assert.AreEqual("1111", read.Background);
+      read.AssertIs("Test", "EEEE", "1111");
    }
 
    [TestMethod]
    public void TestClear() {
-      console.ForegroundColor = ConsoleColor.DarkGreen;
-      console.BackgroundColor = ConsoleColor.White;
+      console.Write(MapPart.Parse("Test", "2222", "FFFF").First());
       MockConsoleInfo read = console.ReadScreen(0, 0, 4);
-      Assert.AreEqual("7777", read.Foreground);
-      Assert.AreEqual("0000", read.Background);
+      read.AssertIs("Test", "2222", "FFFF");
       console.Clear();
       read = console.ReadScreen(0, 0, 4);
-      Assert.AreEqual("2222", read.Foreground);
-      Assert.AreEqual("FFFF", read.Background);
+      read.AssertIs("    ", "7777", "0000");
    }
 
    [TestMethod]
    public void TestEnlargeWindowSize() {
       Assert.AreEqual(80, console.WindowWidth);
       Assert.AreEqual(24, console.WindowHeight);
-      console.Write("Test");
+      console.Write("Test",FieldState.None, StatusMessageKind.None);
       console.SetWindowSize(120, 30);
       Assert.AreEqual(120, console.WindowWidth);
       Assert.AreEqual(30, console.WindowHeight);
       MockConsoleInfo read = console.ReadScreen(0, 0, 4);
-      Assert.AreEqual("Test", read.ScreenText);
-      Assert.AreEqual("7777", read.Foreground);
-      Assert.AreEqual("0000", read.Background);
+      read.AssertIs("Test", "FFFF", "0000");
    }
 
    [TestMethod]
    public void TestShrinkWindowSize() {
       Assert.AreEqual(80, console.WindowWidth);
       Assert.AreEqual(24, console.WindowHeight);
-      console.Write("Test");
+      console.Write("Test", FieldState.None, StatusMessageKind.None);
       console.SetWindowSize(40, 10);
       Assert.AreEqual(40, console.WindowWidth);
       Assert.AreEqual(10, console.WindowHeight);
       MockConsoleInfo read = console.ReadScreen(0, 0, 4);
-      Assert.AreEqual("Test", read.ScreenText);
-      Assert.AreEqual("7777", read.Foreground);
-      Assert.AreEqual("0000", read.Background);
+      read.AssertIs("Test", "FFFF", "0000");
    }
 }

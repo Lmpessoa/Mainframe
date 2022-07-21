@@ -28,7 +28,6 @@ public sealed partial class Application {
 
    private static Application? _current = null;
 
-   private readonly ConsoleColorHelper _colors;
    private readonly Map _initialMap;
    private readonly Stack<Map> _maps = new();
 
@@ -101,7 +100,7 @@ public sealed partial class Application {
                break;
             case "End":
                if (field is not null) {
-                  Console.CursorLeft = map.Left + field.Left + field.Value.TrimEnd('\t').Length;
+                  Console.CursorLeft = map.Left + field.Left + field.Value.TrimEnd('\0').Length;
                }
                break;
             default:
@@ -113,7 +112,7 @@ public sealed partial class Application {
                      string value = field.Value;
                      int pos = Console.CursorLeft - field.Left - map.Left;
                      if (InsertMode && field.Mask != "/") {
-                        if (value[^1] != '\t') {
+                        if (value[^1] != '\0') {
                            break;
                         }
                         value = value[..^1];
@@ -218,7 +217,6 @@ public sealed partial class Application {
 
    private void RedrawMapIfNeeded() {
       if (_viewDirty && CurrentMap is Map map) {
-         Console.ResetColor();
          if (map.IsInWindow) {
             if (_border != WindowBorder.None) {
                string borderChars = _border switch {
@@ -229,10 +227,10 @@ public sealed partial class Application {
                   _ => "+-+|+-+",
                };
                Console.SetCursorPosition(map.Left - 1, map.Top - 1);
-               Console.Write($"{borderChars[0]}{new string(borderChars[1], map.Width)}{borderChars[2]}");
+               Console.Write(MapPart.Parse($"{borderChars[0]}{new string(borderChars[1], map.Width)}{borderChars[2]}").First());
                Console.SetCursorPosition(map.Left - 1, map.Top + map.Height);
-               Console.Write($"{borderChars[4]}{new string(borderChars[5], map.Width)}{borderChars[6]}");
-               string vertBorder = $"{borderChars[3]}{new string(' ', map.Width)}{borderChars[3]}";
+               Console.Write(MapPart.Parse($"{borderChars[4]}{new string(borderChars[5], map.Width)}{borderChars[6]}").First());
+               MapPart vertBorder = MapPart.Parse($"{borderChars[3]}{new string(' ', map.Width)}{borderChars[3]}").First();
                for (int i = 0; i < map.Height; ++i) {
                   Console.SetCursorPosition(map.Left - 1, map.Top + i);
                   Console.Write(vertBorder);
@@ -242,32 +240,19 @@ public sealed partial class Application {
          } else {
             Console.SetCursorPosition(0, 0);
          }
-         ConsoleColor _fore = Console.ForegroundColor;
-         ConsoleColor _back = Console.BackgroundColor;
-         foreach (MapPart fragment in map.Parts) {
-            Console.ForegroundColor = fragment.ForegroundColor switch {
-               MapPartColor.Default => _fore,
-               MapPartColor.Highlight => _colors.CommandForegroundColor,
-               _ => (ConsoleColor) (int) fragment.ForegroundColor
-            };
-            Console.BackgroundColor = fragment.BackgroundColor switch {
-               MapPartColor.Default => _back,
-               MapPartColor.Highlight => _colors.CommandBackgroundColor,
-               _ => (ConsoleColor) (int) fragment.BackgroundColor,
-            };
-            Console.Write(fragment.Text);
-            if (fragment.LineBreak) {
+         foreach (MapPart part in map.Parts) {
+            Console.Write(part);
+            if (part.LineBreak) {
                if (!map.IsInWindow && Console.WindowWidth - Console.CursorLeft > 0) {
-                  Console.Write(new string(' ', Console.WindowWidth - Console.CursorLeft));
+                  Console.Write(MapPart.Parse(new string(' ', Console.WindowWidth - Console.CursorLeft)).First());
                }
                Console.SetCursorPosition(map.Left, Console.CursorTop + 1);
             }
          }
          if (!map.IsInWindow) {
-            Console.ResetColor();
             for (int y = Console.CursorTop; y < Console.WindowHeight; ++y) {
                Console.SetCursorPosition(0, y);
-               Console.Write(new string(' ', Console.WindowWidth - Console.CursorLeft));
+               Console.Write(MapPart.Parse(new string(' ', Console.WindowWidth - Console.CursorLeft)).First());
             }
          }
       }
@@ -277,37 +262,36 @@ public sealed partial class Application {
       if (CurrentMap is Map map) {
          foreach (Field field in map.Fields) {
             if (_viewDirty || field.IsDirty) {
-               Console.ResetColor();
+               //Console.ResetColor();
                Console.SetCursorPosition(field.Left + map.Left, field.Top + map.Top);
+               StatusMessageKind fstatus = StatusMessageKind.None;
+               FieldState fstate = FieldState.None;
                string fvalue;
                if (!field.IsVisible) {
                   fvalue = new string(' ', field.Width);
-                  Console.BackgroundColor = field.BackgroundColor ?? Console.BackgroundColor;
                } else if (field.IsEditable) {
-                  _colors.SetFieldColors(field, map.CurrentFieldIndex == map.Fields.IndexOf(field));
-                  fvalue = field.Value.Replace('\t', '_');
+                  fstate = field == map.CurrentField ? FieldState.Editing : FieldState.Editable;
+                  fvalue = field.Value;
                   if (field.IsProtected) {
                      string masked = "";
                      foreach (char ch in fvalue) {
-                        masked += ch == '_' ? '_' : _passwordChar;
+                        masked += ch == '\0' ? '\0' : _passwordChar;
                      }
                      fvalue = masked;
                   }
                } else {
-                  fvalue = field.Value.Trim('\t');
+                  fvalue = field.Value.Trim('\0');
                   if (fvalue.Length < field.Width) {
                      fvalue += new string(' ', field.Width - fvalue.Length);
                   }
                   if (field.IsStatus) {
-                     _colors.SetMessageColors(field, map.StatusKind);
-                  } else {
-                     _colors.SetLabelColors(field);
+                     fstatus = map.StatusKind;
                   }
                }
                if (!PreserveValues && field != map.CurrentField) {
                   fvalue = fvalue.ToUpper();
                }
-               Console.Write(fvalue[0..Math.Min(fvalue.Length, field.Width)]);
+               Console.Write(fvalue[0..Math.Min(fvalue.Length, field.Width)], fstate, fstatus);
                field.IsDirty = false;
             }
          }

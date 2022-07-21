@@ -22,23 +22,11 @@
 
 namespace Lmpessoa.Mainframe;
 
-/// <summary>
-/// 
-/// </summary>
-public struct MockConsoleInfo {
+internal struct MockConsoleInfo {
 
-   /// <summary>
-   /// 
-   /// </summary>
-   public string ScreenText { get; init; }
+   public string Text { get; init; }
 
-   /// <summary>
-   /// 
-   /// </summary>
    public string Foreground { get; init; }
 
-   /// <summary>
-   /// 
-   /// </summary>
    public string Background { get; init; }
 }

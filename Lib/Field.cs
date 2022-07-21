@@ -35,7 +35,7 @@ internal enum FieldType : byte {
 
 internal sealed class Field {
 
-   internal Field(Map parent, int left, int top, string arg, ConsoleColor? fgcolor, ConsoleColor? bgcolor) {
+   internal Field(Map parent, int left, int top, string arg) {
       Match match = Regex.Match(arg, "^([A-Za-z][A-Za-z0-9\\-_]*):([A-Z]{3})(\\[\\d+\\]|\\([^\\]]+\\))?$");
       if (!match.Success) {
          throw new InvalidFieldException($"Invalid field definition", left, top);
@@ -50,8 +50,6 @@ internal sealed class Field {
       Left = left;
       Name = name;
       Parent = parent;
-      BackgroundColor = bgcolor;
-      ForegroundColor = fgcolor;
       Type = type switch {
          "PWD" => FieldType.Editable | FieldType.Focusable | FieldType.Protected,
          "INP" => FieldType.Editable | FieldType.Focusable,
@@ -71,17 +69,13 @@ internal sealed class Field {
       if (type is "CHK") {
          Group = args.Length > 0 ? byte.Parse(args[1..^1]) : 0;
       }
-      _value = new('\t', Width);
+      _value = new('\0', Width);
    }
-
-   internal ConsoleColor? BackgroundColor { get; init; }
-
-   internal ConsoleColor? ForegroundColor { get; init; }
 
    internal int? Group { get; init; }
 
    internal bool IsChecked
-      => Group is not null && Value.Trim() != "";
+      => Group is not null && Value.Trim('\0').Trim() != "";
 
    internal bool IsDirty { get; set; } = false;
 
@@ -128,17 +122,19 @@ internal sealed class Field {
    internal bool HasCursor(int left, int top)
       => left >= Parent.Left + Left && left  <= Parent.Left + Left + Width + 1 && top == Parent.Top + Top;
 
-   internal bool SetValue(string value) {
+   internal bool SetValue(string value, bool propagate = true) {
       value ??= "";
       if (IsEditable && value.Length < Width) {
-         value += new string('\t', Width - value.Length);
+         value += new string('\0', Width - value.Length);
       } else if (value.Length > Width) {
          value = value[0..Width];
       }
       if (_value != value && AcceptsValue(value)) {
          _value = value;
          IsDirty = true;
-         ValueChanged();
+         if (propagate) {
+            ValueChanged();
+         }
          return true;
       }
       return false;
@@ -163,7 +159,7 @@ internal sealed class Field {
                '9' => value[i] is (>= '0' and <= '9'),
                '/' => value[i] is 'X' or 'x' or '/' or ' ',
                _ => throw new InvalidDataException(nameof(Mask)),
-            } || value[i] == '\t';
+            } || value[i] == '\0';
             if (!valid) {
                return false;
             }
@@ -177,7 +173,7 @@ internal sealed class Field {
          Parent.StatusKind = StatusMessageKind.None;
       } else if (Group is not null and not 0 && Value.Trim() != "") {
          foreach (Field field in Parent.Fields.Where(f => f != this && f.Group == Group)) {
-            field.SetValue("");
+            field.SetValue("", false);
          }
       }
    }

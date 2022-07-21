@@ -50,7 +50,7 @@ public abstract class Map {
    /// <exception cref="ArgumentNullException"></exception>
    /// <exception cref="ArgumentException"></exception>
    public string? this[string fieldName] {
-      get => GetField(fieldName)?.Value.Replace('\t', ' ').Trim();
+      get => GetField(fieldName)?.Value.Replace('\0', ' ').Trim();
       set => GetField(fieldName)?.SetValue((value ?? "").Trim());
    }
 
@@ -95,16 +95,12 @@ public abstract class Map {
       if (fieldIndex >= 0 && fieldIndex < Fields.Count
             && Fields[fieldIndex].IsFocusable) {
          if (CurrentField is not null) {
-            if (Application?.UsesActiveFieldColors ?? false) {
-               CurrentField.IsDirty = true;
-            }
+            CurrentField.IsDirty = true;
             DidLostFocus(CurrentField);
          }
          CurrentFieldIndex = fieldIndex;
          if (CurrentField is not null) {
-            if (Application?.UsesActiveFieldColors ?? false) {
-               CurrentField.IsDirty = true;
-            }
+            CurrentField.IsDirty = true;
             Application.SetCursorPosition(Left + CurrentField.Left, Top + CurrentField.Top);
          }
       }
@@ -274,16 +270,12 @@ public abstract class Map {
       int nextIndex = next is not null ? Fields.IndexOf(next) : -1;
       if (nextIndex != CurrentFieldIndex) {
          if (CurrentField is not null) {
-            if (Application?.UsesActiveFieldColors ?? false) {
-               CurrentField.IsDirty = true;
-            }
+            CurrentField.IsDirty = true;
             DidLostFocus(CurrentField);
          }
          CurrentFieldIndex = nextIndex;
          if (CurrentField is not null) {
-            if (Application?.UsesActiveFieldColors ?? false) {
-               CurrentField.IsDirty = true;
-            }
+            CurrentField.IsDirty = true;
          }
       }
    }
@@ -362,9 +354,7 @@ public abstract class Map {
                      throw new InvalidFieldException("Fields overlap", prev.Left, top);
                   }
                }
-               Field field = new(this, match.Index, top, fieldLines[findex],
-                  foreMarkup.Length >= match.Index + 1 ? ColorForHex(foreMarkup[match.Index]) : null,
-                  backMarkup.Length >= match.Index + 1 ? ColorForHex(backMarkup[match.Index]) : null);
+               Field field = new(this, match.Index, top, fieldLines[findex]);
                if (Fields.Any(f => f.Name == field.Name)) {
                   throw new InvalidFieldException($"Duplicate field name {field.Name}", match.Index, top);
                }

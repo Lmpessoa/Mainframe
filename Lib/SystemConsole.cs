@@ -24,22 +24,27 @@ namespace Lmpessoa.Mainframe;
 
 internal sealed class SystemConsole : IConsole {
 
-   public static IConsole Instance { get; } = new SystemConsole();
+   private readonly ConsoleColor _defaultBackground;
+   private readonly ConsoleColor _defaultForeground;
+   private readonly ConsoleColor _fieldForeground;
+   private ConsoleColor _highlightForeground;
+   private ConsoleColor _highlightBackground;
+   private ConsoleColor? _activeBackground;
 
-   public ConsoleColor BackgroundColor {
-      get => Console.BackgroundColor;
-      set => Console.BackgroundColor = value;
+   public SystemConsole() {
+      Console.ResetColor();
+      _defaultBackground = Console.BackgroundColor;
+      _highlightBackground = _defaultBackground;
+      _defaultForeground = Console.ForegroundColor;
+      _fieldForeground = _defaultForeground + (_defaultForeground > ConsoleColor.Gray ? -8 : 8);
+      _highlightForeground = _fieldForeground;
    }
 
-   public int BufferWidth {
-      get => Console.BufferWidth;
-      set => Console.BufferWidth = value;
-   }
+   public int BufferWidth
+      => Console.BufferWidth;
 
-   public int BufferHeight {
-      get => Console.BufferHeight;
-      set => Console.BufferHeight = value;
-   }
+   public int BufferHeight
+      => Console.BufferHeight;
 
    public int CursorLeft {
       get => Console.CursorLeft;
@@ -61,11 +66,6 @@ internal sealed class SystemConsole : IConsole {
       set => Console.CursorVisible = value;
    }
 
-   public ConsoleColor ForegroundColor {
-      get => Console.ForegroundColor;
-      set => Console.ForegroundColor = value;
-   }
-
    public bool KeyAvailable
       => Console.KeyAvailable;
 
@@ -74,18 +74,16 @@ internal sealed class SystemConsole : IConsole {
       set => Console.TreatControlCAsInput = value;
    }
 
-   public int WindowWidth {
-      get => Console.WindowWidth;
-      set => Console.WindowWidth = value;
-   }
+   public int WindowWidth
+      => Console.WindowWidth;
 
-   public int WindowHeight {
-      get => Console.WindowHeight;
-      set => Console.WindowHeight = value;
-   }
+   public int WindowHeight
+      => Console.WindowHeight;
 
-   public void Clear()
-      => Console.Clear();
+   public void Clear() {
+      Console.ResetColor();
+      Console.Clear();
+   }
 
    public ConsoleKeyInfo ReadKey()
       => Console.ReadKey(true);
@@ -102,6 +100,58 @@ internal sealed class SystemConsole : IConsole {
    public void SetWindowSize(int width, int height)
       => Console.SetWindowSize(width, height);
 
-   public void Write(string value)
-      => Console.Write(value);
+   public void UseActiveFieldBackground() {
+      Console.ResetColor();
+      ConsoleColor bg = _defaultBackground;
+      bg += (bg > ConsoleColor.Gray ? -8 : 8);
+      _activeBackground = bg;
+   }
+
+   public void UseHighlightColorInBackground(ConsoleColor color)
+      => (_highlightForeground, _highlightBackground) = (_defaultBackground, color);
+
+   public void UseHighlightColorInForeground(ConsoleColor color)
+      => (_highlightForeground, _highlightBackground) = (color, _defaultBackground);
+
+   public void Write(MapPart part) {
+      Console.BackgroundColor = part.BackgroundColor switch {
+         MapPartColor.Default => _defaultBackground,
+         MapPartColor.Highlight => _highlightBackground,
+         _ => (ConsoleColor) (int) part.BackgroundColor,
+      };
+      Console.ForegroundColor = part.ForegroundColor switch {
+         MapPartColor.Default => _defaultForeground,
+         MapPartColor.Highlight => _highlightForeground,
+         _ => (ConsoleColor) (int) part.ForegroundColor,
+      };
+      Console.Write(part.Text);
+   }
+
+   public void Write(string value, FieldState state, StatusMessageKind status) {
+      Console.BackgroundColor = _defaultBackground;
+      Console.ForegroundColor = _fieldForeground;
+      if (state is FieldState.Focused or FieldState.Editing) {
+         Console.BackgroundColor = _activeBackground ?? _defaultBackground;
+      }
+      if (status is not StatusMessageKind.None) {
+         ConsoleColor color = status switch {
+            StatusMessageKind.Success => ConsoleColor.DarkGreen,
+            StatusMessageKind.Alert => ConsoleColor.DarkYellow,
+            StatusMessageKind.Error => ConsoleColor.DarkRed,
+            _ => _fieldForeground,
+         };
+         ConsoleColor altColor = status switch {
+            StatusMessageKind.Success => ConsoleColor.Green,
+            StatusMessageKind.Alert => ConsoleColor.Yellow,
+            StatusMessageKind.Error => ConsoleColor.Red,
+            _ => _defaultForeground,
+         };
+         Console.ForegroundColor = (_defaultBackground > ConsoleColor.Gray
+            && _defaultBackground != altColor)
+            || _defaultBackground == color
+            ? altColor
+            : color;
+      }
+      Console.Write(value.Replace('\0', state is FieldState.Editable or FieldState.Editing ? '_' : ' '));
+   }
 }
