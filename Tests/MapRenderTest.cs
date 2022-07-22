@@ -20,6 +20,8 @@
  * SOFTWARE.
  */
 
+using Lmpessoa.Mainframe.Fields;
+
 namespace Lmpessoa.Mainframe.Tests;
 
 [TestClass]
@@ -149,7 +151,7 @@ public sealed class MapRenderTest {
       Assert.IsTrue(parts[0].LineBreak);
 
       Assert.AreEqual(1, map.Fields.Count);
-      Assert.IsTrue(map.Fields[0].IsEditable);
+      Assert.IsInstanceOfType(map.Fields[0], typeof(TextField));
       Assert.AreEqual(2, map.Fields[0].Left);
       Assert.AreEqual(0, map.Fields[0].Top);
       Assert.AreEqual(8, map.Fields[0].Width);
@@ -168,12 +170,12 @@ public sealed class MapRenderTest {
       Assert.IsTrue(parts[0].LineBreak);
 
       Assert.AreEqual(2, map.Fields.Count);
-      Assert.IsTrue(map.Fields[0].IsReadOnly);
+      Assert.IsInstanceOfType(map.Fields[0], typeof(Label));
       Assert.AreEqual(2, map.Fields[0].Left);
       Assert.AreEqual(0, map.Fields[0].Top);
       Assert.AreEqual(8, map.Fields[0].Width);
 
-      Assert.IsFalse(map.Fields[1].IsReadOnly);
+      Assert.IsInstanceOfType(map.Fields[1], typeof(TextField));
       Assert.AreEqual(13, map.Fields[1].Left);
       Assert.AreEqual(0, map.Fields[1].Top);
       Assert.AreEqual(8, map.Fields[1].Width);
@@ -197,12 +199,12 @@ public sealed class MapRenderTest {
       Assert.IsTrue(parts[1].LineBreak);
 
       Assert.AreEqual(2, map.Fields.Count);
-      Assert.IsTrue(map.Fields[0].IsReadOnly);
+      Assert.IsInstanceOfType(map.Fields[0], typeof(Label));
       Assert.AreEqual(2, map.Fields[0].Left);
       Assert.AreEqual(0, map.Fields[0].Top);
       Assert.AreEqual(8, map.Fields[0].Width);
 
-      Assert.IsFalse(map.Fields[1].IsReadOnly);
+      Assert.IsInstanceOfType(map.Fields[1], typeof(TextField));
       Assert.AreEqual(13, map.Fields[1].Left);
       Assert.AreEqual(1, map.Fields[1].Top);
       Assert.AreEqual(8, map.Fields[1].Width);
@@ -212,38 +214,38 @@ public sealed class MapRenderTest {
    public void TestReadOnlyFieldValue() {
       Map map = new TestMap1(">  ¬XXXXXXX ", "¬Label:ROT[8]");
       Assert.AreEqual(1, map.Fields.Count);
-      Assert.IsTrue(map.Fields[0].IsReadOnly);
+      Assert.IsInstanceOfType(map.Fields[0], typeof(Label));
       Assert.IsFalse(map.Fields[0].IsDirty);
       map.Fields[0].SetValue("01/01");
       Assert.IsTrue(map.Fields[0].IsDirty);
-      Assert.AreEqual("01/01", map["Label"]);
+      Assert.AreEqual("01/01", map.Get<string>("Label"));
    }
 
    [TestMethod]
    public void TestEditableFieldValue() {
       Map map = new TestMap1(">  ¬XXXXXXX ", "¬Field:INP[8]");
       Assert.AreEqual(1, map.Fields.Count);
-      Assert.IsTrue(map.Fields[0].IsEditable);
+      Assert.IsInstanceOfType(map.Fields[0], typeof(TextField));
       Assert.IsFalse(map.Fields[0].IsDirty);
       map.Fields[0].SetValue("01/01");
       Assert.IsTrue(map.Fields[0].IsDirty);
-      Assert.AreEqual("01/01", map["Field"]);
-      Assert.AreEqual("01/01\0\0\0", map.Fields[0].Value);
+      Assert.AreEqual("01/01", map.Get<string>("Field"));
+      Assert.AreEqual("01/01\0\0\0", ((TextField) map.Fields[0]).GetInnerValue());
    }
 
    [TestMethod]
    public void TestFieldIgnoresSameValue() {
       Map map = new TestMap1(">  ¬XXXXXXX ", "¬Field:INP[8]");
       Assert.AreEqual(1, map.Fields.Count);
-      Assert.IsTrue(map.Fields[0].IsEditable);
+      Assert.IsInstanceOfType(map.Fields[0], typeof(TextField));
       Assert.IsFalse(map.Fields[0].IsDirty);
-      map.Fields[0].SetValue("01/01");
+      Assert.IsTrue(map.Set("Field", "01/01"));
       Assert.IsTrue(map.Fields[0].IsDirty);
-      Assert.AreEqual("01/01", map["Field"]);
-      Assert.AreEqual("01/01\0\0\0", map.Fields[0].Value);
+      Assert.AreEqual("01/01", map.Get<string>("Field"));
+      Assert.AreEqual("01/01\0\0\0", ((TextField)map.Fields[0]).GetInnerValue());
       map.Fields[0].IsDirty = false;
       Assert.IsFalse(map.Fields[0].IsDirty);
-      map.Fields[0].SetValue("01/01");
+      Assert.IsFalse(map.Set("Field", "01/01"));
       Assert.IsFalse(map.Fields[0].IsDirty);
    }
 
@@ -251,13 +253,13 @@ public sealed class MapRenderTest {
    public void TestMessageField() {
       Map map = new TestMap1("> ¬XXXXXXX ", "¬Status:STA[8]");
       Assert.AreEqual(1, map.Fields.Count);
-      Assert.IsTrue(map.Fields[0].IsStatus);
+      Assert.AreSame(map.StatusField, map.Fields[0]);
       Assert.IsFalse(map.Fields[0].IsDirty);
       Assert.IsNotNull(map.StatusField);
       Assert.AreSame(map.Fields[0], map.StatusField);
       map.SetMessage("Test message");
       Assert.IsTrue(map.Fields[0].IsDirty);
-      Assert.AreEqual("Test mes", map.Fields[0].Value);
+      Assert.AreEqual("Test mes", map.Get<string>("Status"));
       Assert.AreEqual(StatusFieldSeverity.Info, map.StatusField!.Severity);
    }
 
@@ -265,13 +267,13 @@ public sealed class MapRenderTest {
    public void TestErrorMessageField() {
       Map map = new TestMap1("> ¬XXXXXXX ", "¬Status:STA[8]");
       Assert.AreEqual(1, map.Fields.Count);
-      Assert.IsTrue(map.Fields[0].IsStatus);
+      Assert.AreSame(map.StatusField, map.Fields[0]);
       Assert.IsFalse(map.Fields[0].IsDirty);
       Assert.IsNotNull(map.StatusField);
       Assert.AreSame(map.Fields[0], map.StatusField);
       map.SetError("Test error");
       Assert.IsTrue(map.Fields[0].IsDirty);
-      Assert.AreEqual("Test err", map.Fields[0].Value);
+      Assert.AreEqual("Test err", map.Get<string>("Status"));
       Assert.AreEqual(StatusFieldSeverity.Error, map.StatusField!.Severity);
    }
 
@@ -279,13 +281,13 @@ public sealed class MapRenderTest {
    public void TestAlertMessageField() {
       Map map = new TestMap1("> ¬XXXXXXX ", "¬Status:STA[8]");
       Assert.AreEqual(1, map.Fields.Count);
-      Assert.IsTrue(map.Fields[0].IsStatus);
+      Assert.AreSame(map.StatusField, map.Fields[0]);
       Assert.IsFalse(map.Fields[0].IsDirty);
       Assert.IsNotNull(map.StatusField);
       Assert.AreSame(map.Fields[0], map.StatusField);
       map.SetAlert("Test alert");
       Assert.IsTrue(map.Fields[0].IsDirty);
-      Assert.AreEqual("Test ale", map.Fields[0].Value);
+      Assert.AreEqual("Test ale", map.Get<string>("Status"));
       Assert.AreEqual(StatusFieldSeverity.Alert, map.StatusField!.Severity);
    }
 
@@ -293,13 +295,13 @@ public sealed class MapRenderTest {
    public void TestSuccessMessageField() {
       Map map = new TestMap1("> ¬XXXXXXX ", "¬Status:STA[8]");
       Assert.AreEqual(1, map.Fields.Count);
-      Assert.IsTrue(map.Fields[0].IsStatus);
+      Assert.AreSame(map.StatusField, map.Fields[0]);
       Assert.IsFalse(map.Fields[0].IsDirty);
       Assert.IsNotNull(map.StatusField);
       Assert.AreSame(map.Fields[0], map.StatusField);
       map.SetSuccess("Test success");
       Assert.IsTrue(map.Fields[0].IsDirty);
-      Assert.AreEqual("Test suc", map.Fields[0].Value);
+      Assert.AreEqual("Test suc", map.Get<string>("Status"));
       Assert.AreEqual(StatusFieldSeverity.Success, map.StatusField!.Severity);
    }
 
@@ -307,13 +309,13 @@ public sealed class MapRenderTest {
    public void TestDirectSetMessageField() {
       Map map = new TestMap1("> ¬XXXXXXX ", "¬Status:STA[8]");
       Assert.AreEqual(1, map.Fields.Count);
-      Assert.IsTrue(map.Fields[0].IsStatus);
+      Assert.AreSame(map.StatusField, map.Fields[0]);
       Assert.IsFalse(map.Fields[0].IsDirty);
       Assert.IsNotNull(map.StatusField);
       Assert.AreSame(map.Fields[0], map.StatusField);
       map.Fields[0].SetValue("Test message");
       Assert.IsTrue(map.Fields[0].IsDirty);
-      Assert.AreEqual("Test mes", map["Status"]);
+      Assert.AreEqual("Test mes", map.Get<string>("Status"));
       Assert.AreEqual(StatusFieldSeverity.None, map.StatusField!.Severity);
    }
 
@@ -321,131 +323,126 @@ public sealed class MapRenderTest {
    public void TestClearMessageField() {
       Map map = new TestMap1("> ¬XXXXXXX ", "¬Status:STA[8]");
       Assert.AreEqual(1, map.Fields.Count);
-      Assert.IsTrue(map.Fields[0].IsStatus);
+      Assert.AreSame(map.StatusField, map.Fields[0]);
       Assert.IsFalse(map.Fields[0].IsDirty);
       Assert.IsNotNull(map.StatusField);
       Assert.AreSame(map.Fields[0], map.StatusField);
       map.SetError("Test error");
       map.Fields[0].IsDirty = false;
-      Assert.AreEqual("Test err", map["Status"]);
+      Assert.AreEqual("Test err", map.Get<string>("Status"));
       Assert.IsFalse(map.Fields[0].IsDirty);
       Assert.AreEqual(StatusFieldSeverity.Error, map.StatusField!.Severity);
       map.ClearMessage();
-      Assert.AreEqual("", map["Status"]);
+      Assert.AreEqual("", map.Get<string>("Status"));
       Assert.IsTrue(map.Fields[0].IsDirty);
       Assert.AreEqual(StatusFieldSeverity.None, map.StatusField!.Severity);
    }
 
    [TestMethod]
    public void TestDuplicateMessageField() {
-      InvalidFieldException ex = Assert.ThrowsException<InvalidFieldException>(() => {
+      Assert.ThrowsException<ArgumentException>(() => {
          Map map = new TestMap1(">  ¬XXXXXXX   ¬XXX ", "¬Status1:STA[8]", "¬Status2:STA[4]");
       });
-      Assert.AreEqual(13, ex.FieldLeft);
-      Assert.AreEqual(0, ex.FieldTop);
    }
 
    [TestMethod]
    public void TestValueForFieldWithFreeMask1() {
       Map map = new TestMap1(">  ¬XXXXXXXX ", "¬Field:INP(XXXXXXXXX)");
       Assert.AreEqual(1, map.Fields.Count);
-      Assert.IsTrue(map.Fields[0].IsEditable);
+      Assert.IsInstanceOfType(map.Fields[0], typeof(TextField));
       Assert.AreEqual(9, map.Fields[0].Width);
-      Assert.AreEqual("", map["Field"]);
-      map.Fields[0].SetValue("A-B+C/D E");
+      Assert.AreEqual("", map.Get<string>("Field"));
+      Assert.IsTrue(map.Set("Field", "A-B+C/D E"));
       Assert.IsTrue(map.Fields[0].IsDirty);
-      Assert.AreEqual("A-B+C/D E", map["Field"]);
-      map.Fields[0].SetValue(null);
-      Assert.AreEqual("", map["Field"]);
+      Assert.AreEqual("A-B+C/D E", map.Get<string>("Field"));
+      Assert.IsTrue(map.Set("Field", null));
+      Assert.AreEqual("", map.Get<string>("Field"));
    }
 
    [TestMethod]
    public void TestValueForFieldWithFreeMask2() {
       Map map = new TestMap1(">  ¬XXXXXXXX ", "¬Field:INP(*********)");
       Assert.AreEqual(1, map.Fields.Count);
-      Assert.IsTrue(map.Fields[0].IsEditable);
+      Assert.IsInstanceOfType(map.Fields[0], typeof(TextField));
       Assert.AreEqual(9, map.Fields[0].Width);
-      Assert.AreEqual("", map["Field"]);
-      map.Fields[0].SetValue("A-B+C/D E");
+      Assert.AreEqual("", map.Get<string>("Field"));
+      Assert.IsTrue(map.Set("Field", "A-B+C/D E"));
       Assert.IsTrue(map.Fields[0].IsDirty);
-      Assert.AreEqual("A-B+C/D E", map["Field"]);
-      map.Fields[0].SetValue(null);
-      Assert.AreEqual("", map["Field"]);
+      Assert.AreEqual("A-B+C/D E", map.Get<string>("Field"));
+      Assert.IsTrue(map.Set("Field", null));
+      Assert.AreEqual("", map.Get<string>("Field"));
    }
 
    [TestMethod]
    public void TestValueForFieldWithFreeMask3() {
       Map map = new TestMap1(">  ¬XXXXXXXX ", "¬Field:INP(         )");
       Assert.AreEqual(1, map.Fields.Count);
-      Assert.IsTrue(map.Fields[0].IsEditable);
+      Assert.IsInstanceOfType(map.Fields[0], typeof(TextField));
       Assert.AreEqual(9, map.Fields[0].Width);
-      Assert.AreEqual("", map["Field"]);
-      map.Fields[0].SetValue("A-B+C/D E");
+      Assert.AreEqual("", map.Get<string>("Field"));
+      Assert.IsTrue(map.Set("Field", "A-B+C/D E"));
       Assert.IsTrue(map.Fields[0].IsDirty);
-      Assert.AreEqual("A-B+C/D E", map["Field"]);
-      map.Fields[0].SetValue(null);
-      Assert.AreEqual("", map["Field"]);
+      Assert.AreEqual("A-B+C/D E", map.Get<string>("Field"));
+      Assert.IsTrue(map.Set("Field" ,null));
+      Assert.AreEqual("", map.Get<string>("Field"));
    }
 
    [TestMethod]
    public void TestNullValueForField() {
       Map map = new TestMap1(">  ¬AAAAAAA ", "¬Field:INP(AAAAAAAA)");
       Assert.AreEqual(1, map.Fields.Count);
-      Assert.IsTrue(map.Fields[0].IsEditable);
-      Assert.AreEqual("", map["Field"]);
-      map.Fields[0].SetValue("ABCD");
+      Assert.IsInstanceOfType(map.Fields[0], typeof(TextField));
+      Assert.AreEqual("", map.Get<string>("Field"));
+      Assert.IsTrue(map.Set("Field", "ABCD"));
       Assert.IsTrue(map.Fields[0].IsDirty);
-      Assert.AreEqual("ABCD", map["Field"]);
-      map.Fields[0].SetValue(null);
-      Assert.AreEqual("", map["Field"]);
+      Assert.AreEqual("ABCD", map.Get<string>("Field"));
+      Assert.IsTrue(map.Set("Field", null));
+      Assert.AreEqual("", map.Get<string>("Field"));
    }
 
    [TestMethod]
    public void TestValidValueForTextField() {
       Map map = new TestMap1(">  ¬AAAAAAA ", "¬Field:INP(AAAAAAAA)");
       Assert.AreEqual(1, map.Fields.Count);
-      Assert.IsTrue(map.Fields[0].IsEditable);
-      map.Fields[0].SetValue("ABCD");
+      Assert.IsInstanceOfType(map.Fields[0], typeof(TextField));
+      Assert.IsTrue(map.Set("Field", "ABCD"));
       Assert.IsTrue(map.Fields[0].IsDirty);
-      Assert.AreEqual("ABCD", map["Field"]);
+      Assert.AreEqual("ABCD", map.Get<string>("Field"));
    }
 
    [TestMethod]
    public void TestInvalidValueForTextField() {
       Map map = new TestMap1(">  ¬AAAAAAA ", "¬Field:INP(AAAAAAAA)");
       Assert.AreEqual(1, map.Fields.Count);
-      Assert.IsTrue(map.Fields[0].IsEditable);
+      Assert.IsInstanceOfType(map.Fields[0], typeof(TextField));
       Assert.IsFalse(map.Fields[0].SetValue("1234"));
-      map["Field"] = "1234";
-      Assert.AreEqual("", map["Field"]);
+      Assert.IsFalse(map.Set("Field", "1234"));
+      Assert.AreEqual("", map.Get<string>("Field"));
    }
 
    [TestMethod]
    public void TestValidValueForNumberField() {
       Map map = new TestMap1(">  ¬9999999 ", "¬Field:INP(99999999)");
       Assert.AreEqual(1, map.Fields.Count);
-      Assert.IsTrue(map.Fields[0].IsEditable);
-      map.Fields[0].SetValue("1234");
+      Assert.IsInstanceOfType(map.Fields[0], typeof(TextField));
+      Assert.IsTrue(map.Set("Field", "1234"));
       Assert.IsTrue(map.Fields[0].IsDirty);
-      Assert.AreEqual("1234", map["Field"]);
+      Assert.AreEqual("1234", map.Get<string>("Field"));
    }
 
    [TestMethod]
    public void TestInvalidValueForNumberField() {
       Map map = new TestMap1(">  ¬9999999 ", "¬Field:INP(99999999)");
       Assert.AreEqual(1, map.Fields.Count);
-      Assert.IsTrue(map.Fields[0].IsEditable);
+      Assert.IsInstanceOfType(map.Fields[0], typeof(TextField));
       Assert.IsFalse(map.Fields[0].SetValue("ABCD"));
-      map["Field"] = "ABCD";
-      Assert.AreEqual("", map["Field"]);
+      map.Set("Field", "ABCD");
+      Assert.AreEqual("", map.Get<string>("Field"));
    }
 
    [TestMethod]
    public void TestInvalidMaskForField() {
-      Map map = new TestMap1(">  ¬------- ", "¬Field:INP(--------)");
-      Assert.AreEqual(1, map.Fields.Count);
-      Assert.IsTrue(map.Fields[0].IsEditable);
-      Assert.ThrowsException<InvalidDataException>(() => map.Fields[0].SetValue("ABCD"));
+      Assert.ThrowsException<ArgumentException>(() => new TestMap1(">  ¬------- ", "¬Field:INP(--------)"));
    }
 
 
@@ -488,7 +485,7 @@ public sealed class MapRenderTest {
       Assert.AreEqual(9, map.Fields[0].Left);
       Assert.AreEqual(2, map.Fields[0].Top);
       Assert.AreEqual(2, map.Fields[0].Width);
-      Assert.IsFalse(map.Fields[0].IsReadOnly);
+      Assert.IsNotInstanceOfType(map.Fields[0], typeof(Label));
    }
 
 

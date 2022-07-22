@@ -22,40 +22,42 @@
 
 using System.Collections;
 
+using Lmpessoa.Mainframe.Fields;
+
 namespace Lmpessoa.Mainframe;
 
-internal sealed class FieldSet : IEnumerable<Field> {
+internal sealed class FieldSet : IEnumerable<FieldBase> {
 
-   public IEnumerator<Field> GetEnumerator()
+   public IEnumerator<FieldBase> GetEnumerator()
       => _fields.GetEnumerator();
 
 
-   internal Field this[int index]
+   internal FieldBase this[int index]
       => _fields[index];
 
    internal int Count
       => _fields.Count;
 
-   internal void Add(Field field)
+   internal void Add(FieldBase field)
       => _fields.Add(field);
 
    internal void Clear() 
       => _fields.Clear();
 
-   internal int IndexOf(Field field)
+   internal int IndexOf(FieldBase field)
       => _fields.IndexOf(field);
 
    internal void Move(int index, int newIndex) {
       if (index < 0 || index >= _fields.Count) {
          throw new ArgumentOutOfRangeException(nameof(index));
       }
-      Field field = _fields[index];
+      FieldBase field = _fields[index];
       _fields.Remove(field);
       _fields.Insert(Math.Min(Math.Max(0, newIndex), _fields.Count), field);
    }
 
 
-   private readonly List<Field> _fields = new();
+   private readonly List<FieldBase> _fields = new();
 
 
    IEnumerator IEnumerable.GetEnumerator()

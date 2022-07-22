@@ -27,8 +27,8 @@ public sealed class MapFieldsTest {
 
    [TestMethod]
    public void TestTwoMethodsCannotShareName() {
-      Assert.ThrowsException<InvalidFieldException>(()
-         => new TestMap("> ¬     ¬    ", "¬Field:INP[3]", "¬Field:ROT[3]"));
+      Exception ex = Assert.ThrowsException<ArgumentException>(() => new TestMap("> ¬     ¬    ", "¬Field:INP[3]", "¬Field:ROT[3]"));
+      Assert.AreEqual("Duplicate field name: 'Field'", ex.Message);
    }
 
    [TestMethod]
@@ -266,8 +266,8 @@ public sealed class MapFieldsTest {
 
    [TestMethod]
    public void TestFieldWithUnexistingType() {
-      Assert.ThrowsException<InvalidFieldException>(() => new TestMap("> ¬XXXXXXX ", "¬Field:TXT[8]"),
-         "'TXT' is not a valid field type");
+      Exception ex = Assert.ThrowsException<ArgumentException>(() => new TestMap("> ¬XXXXXXX ", "¬Field:KLM[8]"));
+      Assert.AreEqual("Unknown field type: 'KLM'", ex.Message);
    }
 
    [TestMethod]
@@ -275,32 +275,31 @@ public sealed class MapFieldsTest {
       Map map = new TestMap("> ¬XXXXXXX ", "¬Field:INP[8]");
       Assert.AreEqual(1, map.Fields.Count);
       Assert.AreEqual("Field", map.Fields[0].Name);
-      Assert.ThrowsException<ArgumentException>(() => map.SetFieldVisible("Label", false),
-         "Label is not defined");
+      Exception ex = Assert.ThrowsException<ArgumentException>(() => map.SetFieldVisible("Label", false));
+      Assert.AreEqual("Field 'Label' is not defined", ex.Message);
    }
 
    [TestMethod]
    public void TestCheckFieldWithWidth() {
-      Assert.ThrowsException<InvalidFieldException>(() => new TestMap("> ¬XXXXXXX ", "¬Field:CHK[8]"),
-         "Invalid field definition: Field");
+      Exception ex = Assert.ThrowsException<ArgumentException>(() => new TestMap("> ¬XXXXXXX ", "¬Field:CHK[8]"));
+      Assert.AreEqual("Invalid field definition: 'Field:CHK[8]'", ex.Message);
    }
 
    [TestMethod]
    public void TestCheckFieldWithMask() {
-      Assert.ThrowsException<InvalidFieldException>(() => new TestMap("> ¬XXXXXXX ", "¬Field:CHK(X)"),
-         "Invalid field definition: Field");
+      Assert.ThrowsException<FormatException>(() => new TestMap("> ¬XXXXXXX ", "¬Field:CHK(X)"));
    }
 
    [TestMethod]
    public void TestFieldWithOtherDefinition() {
-      Assert.ThrowsException<InvalidFieldException>(() => new TestMap("> ¬XXXXXXX ", "¬Field:INP{value}"),
-         "Invalid field definition: Field");
+      Exception ex = Assert.ThrowsException<ArgumentException>(() => new TestMap("> ¬XXXXXXX ", "¬Field:INP{value}"));
+      Assert.AreEqual("Invalid field definition: 'Field:INP{value}'", ex.Message);
    }
 
    [TestMethod]
    public void TestFieldsOverlapping() {
-      Assert.ThrowsException<InvalidFieldException>(() => new TestMap("> ¬XX¬XX ", "¬Field1:INP[6]", "¬Field2:INP[3]"),
-         "Fields overlap");
+      Exception ex = Assert.ThrowsException<ArgumentException>(() => new TestMap("> ¬XX¬XX ", "¬Field1:INP[6]", "¬Field2:INP[3]"));
+      Assert.AreEqual("Fields overlap: 'Field1' and 'Field2'", ex.Message);
    }
 
    private sealed class TestMap : Map {

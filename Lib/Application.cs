@@ -22,6 +22,8 @@
 
 using System.Diagnostics;
 
+using Lmpessoa.Mainframe.Fields;
+
 namespace Lmpessoa.Mainframe;
 
 /// <summary>
@@ -217,7 +219,7 @@ public sealed partial class Application {
             previous.CursorLastPosition = (_current.Console.CursorLeft, _current.Console.CursorTop);
             previous.WillDeactivate();
          }
-         if (map.IsInWindow) {
+         if (map.IsPopup) {
             if (_current._windowPos == (-1, -1)) {
                left = (_current._consoleSize.Width - map.Width) / 2;
                top = (_current._consoleSize.Height - map.Height) / 2;
@@ -236,7 +238,7 @@ public sealed partial class Application {
          map.FocusOnNextField();
          _current._maps.Push(map);
          map.Redraw(_current.Console, true);
-         if (map.Fields.Any(f => f.IsFocusable) && map.CurrentField is Field field) {
+         if (map.Fields.Any(f => f.IsFocusable) && map.CurrentField is FieldBase field) {
             _current.Console.SetCursorPosition(map.Left + field.Left, map.Top + field.Top);
          }
       }
@@ -266,7 +268,7 @@ public sealed partial class Application {
             int ctop = Console.CursorTop;
             Console.CursorVisible = false;
             if (_viewDirty) {
-               Map? m2 = _maps.LastOrDefault(m => !m.IsInWindow);
+               Map? m2 = _maps.LastOrDefault(m => !m.IsPopup);
                foreach (Map m in _maps.SkipWhile(m => m != m2)) {
                   m.Redraw(Console, true);
                }
@@ -276,7 +278,7 @@ public sealed partial class Application {
             _viewDirty = false;
             Console.CursorLeft = cleft;
             Console.CursorTop = ctop;
-            if (CurrentMap?.CurrentField is Field field && field.IsEditable) {
+            if (CurrentMap?.CurrentField is FieldBase field && field is InputFieldBase) {
                Console.CursorVisible = true;
             }
          }

@@ -20,6 +20,8 @@
  * SOFTWARE.
  */
 
+using Lmpessoa.Mainframe.Fields;
+
 namespace Lmpessoa.Mainframe.Tests;
 
 public partial class ApplicationTest {
@@ -106,8 +108,9 @@ public partial class ApplicationTest {
                     "444444",
                     "000000");
 
-      Assert.IsTrue(Map.Fields[9].IsStatus);
-      Map.Fields[9].SetValue("OK");
+      Assert.IsNotNull(Map.StatusField);
+      Assert.AreSame(Map.StatusField, Map.Fields[9]);
+      Map.StatusField.SetValue("OK");
       DoLoop();
       info = Console.ReadScreen(11, 10, 6);
       info.AssertIs("OK    ",
@@ -174,7 +177,7 @@ public partial class ApplicationTest {
    [TestMethod]
    public void TestShowMapInWindow() {
       TestMap wnd = new();
-      wnd.ShowWindow();
+      wnd.ShowPopup();
       DoLoop();
 
       MockConsoleInfo info = Console.ReadScreen(23, 4, 34);
@@ -200,7 +203,7 @@ public partial class ApplicationTest {
    [TestMethod]
    public void TestCloseMapInWindow() {
       TestMap wnd = new();
-      wnd.ShowWindow();
+      wnd.ShowPopup();
       DoLoop();
 
       MockConsoleInfo info = Console.ReadScreen(23, 4, 34);
@@ -233,7 +236,7 @@ public partial class ApplicationTest {
       App.SetDefaultWindowPosition(3, 3);
       App.Start();
       TestMap wnd = new();
-      wnd.ShowWindow();
+      wnd.ShowPopup();
       DoLoop();
 
       MockConsoleInfo info = Console.ReadScreen(3, 3, 34);
@@ -258,7 +261,7 @@ public partial class ApplicationTest {
       App.UseWindowBorder(WindowBorder.Square);
       App.Start();
       TestMap wnd = new();
-      wnd.ShowWindow();
+      wnd.ShowPopup();
       DoLoop();
 
       MockConsoleInfo info = Console.ReadScreen(23, 4, 34);
@@ -283,7 +286,7 @@ public partial class ApplicationTest {
       App.UseWindowBorder(WindowBorder.Rounded);
       App.Start();
       TestMap wnd = new();
-      wnd.ShowWindow();
+      wnd.ShowPopup();
       DoLoop();
 
       MockConsoleInfo info = Console.ReadScreen(23, 4, 34);
@@ -308,7 +311,7 @@ public partial class ApplicationTest {
       App.UseWindowBorder(WindowBorder.Heavy);
       App.Start();
       TestMap wnd = new();
-      wnd.ShowWindow();
+      wnd.ShowPopup();
       DoLoop();
 
       MockConsoleInfo info = Console.ReadScreen(23, 4, 34);
@@ -333,7 +336,7 @@ public partial class ApplicationTest {
       App.UseWindowBorder(WindowBorder.Double);
       App.Start();
       TestMap wnd = new();
-      wnd.ShowWindow();
+      wnd.ShowPopup();
       DoLoop();
 
       MockConsoleInfo info = Console.ReadScreen(23, 4, 34);
@@ -372,12 +375,13 @@ public partial class ApplicationTest {
 
    [TestMethod]
    public void TestPresevingValuesGivenInLabels() {
-      Assert.IsTrue(Map.Fields[9].IsStatus);
+      Assert.IsNotNull(Map.StatusField);
+      Assert.AreSame(Map.StatusField, Map.Fields[9]);
       Map.SetError("Some error X");
       DoLoop();
       MockConsoleInfo info = Console.ReadScreen(11, 10, 14);
       Assert.AreEqual("SOME ERROR X  ", info.Text);
-      Assert.AreEqual("Some error X", Map.Fields[9].Value);
+      Assert.AreEqual("Some error X", Map.StatusField.GetValue());
       App.Stop();
       App.PreserveGivenFieldValues();
       App.Start();
@@ -385,26 +389,27 @@ public partial class ApplicationTest {
       DoLoop();
       info = Console.ReadScreen(11, 10, 14);
       Assert.AreEqual("Some error X  ", info.Text);
-      Assert.AreEqual("Some error X", Map.Fields[9].Value);
+      Assert.AreEqual("Some error X", Map.StatusField.GetValue());
    }
 
    [TestMethod]
    public void TestPreservingValuesGivenInFields2() {
       Assert.AreEqual(1, Map.CurrentFieldIndex);
-      Assert.IsTrue(Map.Fields[1].IsEditable);
-      Map.Fields[1].SetValue("Some value X");
+      Assert.IsInstanceOfType(Map.Fields[1], typeof(TextField));
+      TextField textField = (TextField) Map.Fields[1];
+      textField.SetValue("Some value X");
       DoLoop();
       MockConsoleInfo info = Console.ReadScreen(11, 4, 14);
       Assert.AreEqual("Some value X__", info.Text);
-      Assert.AreEqual("Some value X\0\0\0\0\0\0\0\0", Map.Fields[1].Value);
-      Assert.AreEqual("Some value X", Map["Field"]);
+      Assert.AreEqual("Some value X\0\0\0\0\0\0\0\0", textField.GetInnerValue());
+      Assert.AreEqual("Some value X", Map.Get<string>("Field"));
       Console.SendKey(ConsoleKey.Tab);
       DoLoop();
       info = Console.ReadScreen(11, 4, 14);
       Assert.AreEqual(2, Map.CurrentFieldIndex);
       Assert.AreEqual("SOME VALUE X__", info.Text);
-      Assert.AreEqual("SOME VALUE X\0\0\0\0\0\0\0\0", Map.Fields[1].Value);
-      Assert.AreEqual("SOME VALUE X", Map["Field"]);
+      Assert.AreEqual("SOME VALUE X\0\0\0\0\0\0\0\0", textField.GetInnerValue());
+      Assert.AreEqual("SOME VALUE X", Map.Get<string>("Field"));
       App.Stop();
       App.PreserveGivenFieldValues();
       App.Start();
@@ -412,8 +417,8 @@ public partial class ApplicationTest {
       DoLoop();
       info = Console.ReadScreen(11, 4, 14);
       Assert.AreEqual("Some value X__", info.Text);
-      Assert.AreEqual("Some value X\0\0\0\0\0\0\0\0", Map.Fields[1].Value);
-      Assert.AreEqual("Some value X", Map["Field"]);
+      Assert.AreEqual("Some value X\0\0\0\0\0\0\0\0", textField.GetInnerValue());
+      Assert.AreEqual("Some value X", Map.Get<string>("Field"));
    }
 
    [TestMethod]
@@ -422,20 +427,20 @@ public partial class ApplicationTest {
       MockConsoleInfo info = Console.ReadScreen(11, 6, 6);
       info.AssertIs("_ SUMM",
                     "F77777");
-      Assert.IsNotNull(Map.Fields[3].Group);
-      Assert.AreEqual(0, Map.Fields[3].Group);
-      Assert.AreEqual(11, Map.Fields[3].Left);
-      Assert.AreEqual(6, Map.Fields[3].Top);
-      Assert.AreEqual("\0", Map.Fields[3].Value);
-      Assert.AreEqual("", Map["Summer"]);
-      Assert.IsFalse(Map.Fields[3].IsChecked);
+      Assert.IsInstanceOfType(Map.Fields[3], typeof(CheckField));
+      CheckField checkField = (CheckField) Map.Fields[3];
+      Assert.AreEqual(0, checkField.Group);
+      Assert.AreEqual(11, checkField.Left);
+      Assert.AreEqual(6, checkField.Top);
+      Assert.AreEqual("\0", checkField.GetInnerValue());
+      Assert.IsFalse(Map.Get<bool>("Summer"));
       Assert.IsTrue(Map.Fields[3].SetValue("x"));
       DoLoop();
       info = Console.ReadScreen(11, 6, 6);
       info.AssertIs("X SUMM",
                     "F77777");
       Assert.AreEqual(1, Map.CurrentFieldIndex);
-      Assert.IsTrue(Map.Fields[3].IsChecked);
+      Assert.IsTrue(Map.Get<bool>("Summer"));
    }
 
    [TestMethod]
@@ -444,15 +449,23 @@ public partial class ApplicationTest {
       MockConsoleInfo info = Console.ReadScreen(11, 7, 6);
       info.AssertIs("_ YES ",
                     "F77777");
-      Assert.AreEqual(1, Map.Fields[5].Group);
-      Assert.AreEqual(1, Map.Fields[6].Group);
-      Assert.AreEqual(1, Map.Fields[7].Group);
-      Assert.AreEqual(2, Map.Fields[8].Group);
-      Assert.AreEqual(11, Map.Fields[5].Left);
-      Assert.AreEqual(7, Map.Fields[5].Top);
-      Assert.AreEqual("", Map["OptYes"]);
-      Assert.IsFalse(Map.Fields[5].IsChecked);
-      Assert.IsTrue(Map.Fields[5].SetValue("X"));
+      Assert.IsInstanceOfType(Map.Fields[5], typeof(CheckField));
+      Assert.IsInstanceOfType(Map.Fields[6], typeof(CheckField));
+      Assert.IsInstanceOfType(Map.Fields[7], typeof(CheckField));
+      Assert.IsInstanceOfType(Map.Fields[8], typeof(CheckField));
+      CheckField checkField5 = (CheckField) Map.Fields[5];
+      CheckField checkField6 = (CheckField) Map.Fields[6];
+      CheckField checkField7 = (CheckField) Map.Fields[7];
+      CheckField checkField8 = (CheckField) Map.Fields[8];
+      Assert.AreEqual(1, checkField5.Group);
+      Assert.AreEqual(1, checkField6.Group);
+      Assert.AreEqual(1, checkField7.Group);
+      Assert.AreEqual(2, checkField8.Group);
+      Assert.AreEqual(11, checkField5.Left);
+      Assert.AreEqual(7, checkField5.Top);
+      Assert.AreEqual("\0", checkField5.GetInnerValue());
+      Assert.IsFalse(Map.Get<bool>("OptYes"));
+      Assert.IsTrue(checkField5.SetValue("X"));
       DoLoop();
       info = Console.ReadScreen(11, 7, 6);
       info.AssertIs("X YES ",
@@ -461,12 +474,12 @@ public partial class ApplicationTest {
       info.AssertIs("_ NO  ",
                     "F77777");
       Assert.AreEqual(1, Map.CurrentFieldIndex);
-      Assert.AreEqual("X", Map.Fields[5].Value);
-      Assert.IsTrue(Map.Fields[5].IsChecked);
-      Assert.IsFalse(Map.Fields[6].IsChecked);
-      Assert.IsFalse(Map.Fields[7].IsChecked);
-      Assert.IsFalse(Map.Fields[8].IsChecked);
-      Map.Fields[6].SetValue("/");
+      Assert.AreEqual("X", checkField5.GetInnerValue());
+      Assert.IsTrue(Map.Get<bool>("OptYes"));
+      Assert.IsFalse(Map.Get<bool>("OptNo"));
+      Assert.IsFalse(Map.Get<bool>("OptMaybe"));
+      Assert.IsFalse(Map.Get<bool>("OptNever"));
+      checkField6.SetValue("/");
       DoLoop();
       info = Console.ReadScreen(11, 7, 6);
       info.AssertIs("_ YES ",
@@ -474,21 +487,21 @@ public partial class ApplicationTest {
       info = Console.ReadScreen(19, 7, 6);
       info.AssertIs("/ NO  ",
                     "F77777");
-      Assert.IsFalse(Map.Fields[5].IsChecked);
-      Assert.IsTrue(Map.Fields[6].IsChecked);
-      Assert.IsFalse(Map.Fields[7].IsChecked);
-      Assert.IsFalse(Map.Fields[8].IsChecked);
-      Map.Fields[8].SetValue("X");
+      Assert.IsFalse(Map.Get<bool>("OptYes"));
+      Assert.IsTrue(Map.Get<bool>("OptNo"));
+      Assert.IsFalse(Map.Get<bool>("OptMaybe"));
+      Assert.IsFalse(Map.Get<bool>("OptNever"));
+      checkField8.SetValue("X");
       DoLoop();
-      Assert.IsFalse(Map.Fields[5].IsChecked);
-      Assert.IsTrue(Map.Fields[6].IsChecked);
-      Assert.IsFalse(Map.Fields[7].IsChecked);
-      Assert.IsTrue(Map.Fields[8].IsChecked);
+      Assert.IsFalse(Map.Get<bool>("OptYes"));
+      Assert.IsTrue(Map.Get<bool>("OptNo"));
+      Assert.IsFalse(Map.Get<bool>("OptMaybe"));
+      Assert.IsTrue(Map.Get<bool>("OptNever"));
    }
 
    [TestMethod]
    public void TestHiddingLabel() {
-      Assert.IsTrue(Map.Fields[0].IsReadOnly);
+      Assert.IsInstanceOfType(Map.Fields[0], typeof(Label));
       Assert.IsTrue(Map.Fields[0].IsVisible);
       Map.Fields[0].SetValue("Some text");
       DoLoop();
@@ -506,7 +519,7 @@ public partial class ApplicationTest {
 
    [TestMethod]
    public void TestHiddingTextField() {
-      Assert.IsTrue(Map.Fields[1].IsEditable);
+      Assert.IsInstanceOfType(Map.Fields[1], typeof(TextField));
       Assert.IsTrue(Map.Fields[1].IsVisible);
       Assert.AreEqual(1, Map.CurrentFieldIndex);
       Map.Fields[1].SetValue("Some text");
@@ -527,7 +540,8 @@ public partial class ApplicationTest {
 
    [TestMethod]
    public void TestHiddingStatusMessage() {
-      Assert.IsTrue(Map.Fields[9].IsStatus);
+      Assert.IsNotNull(Map.StatusField);
+      Assert.AreSame(Map.StatusField, Map.Fields[9]);
       Assert.IsTrue(Map.Fields[9].IsVisible);
       Map.Fields[9].SetValue("Some message");
       DoLoop();
@@ -568,6 +582,39 @@ public partial class ApplicationTest {
       Assert.AreEqual("^ cropped at width 80 beyond this", info.Text);
       info = Console.ReadScreen(2, 29, 20);
       Assert.AreEqual("This line is visible", info.Text);
+   }
+
+   [TestMethod]
+   public void TestExistingFieldGetsFocusOnStatus() {
+      Map.SetAlert("Password", "Some alert");
+      DoLoop();
+      MockConsoleInfo info = Console.ReadScreen(10, 4, 6);
+      info.AssertIs(" _____", "7FFFFF", "000000");
+      info = Console.ReadScreen(10, 5, 6);
+      info.AssertIs(" _____", "766666", "000000");
+      Assert.AreEqual(2, Map.CurrentFieldIndex);
+      info = Console.ReadScreen(2, 10, 20);
+      info.AssertIs("MESSAGE: SOME ALERT ", "77777777766666666666", "00000000000000000000");
+
+      Map.SetError("Field", "Some error");
+      DoLoop();
+      info = Console.ReadScreen(10, 4, 6);
+      info.AssertIs(" _____", "744444", "000000");
+       info = Console.ReadScreen(10, 5, 6);
+      info.AssertIs(" _____", "7FFFFF", "000000");
+      Assert.AreEqual(1, Map.CurrentFieldIndex);
+      info = Console.ReadScreen(2, 10, 20);
+      info.AssertIs("MESSAGE: SOME ERROR ", "77777777744444444444", "00000000000000000000");
+   }
+
+   [TestMethod]
+   public void TestStatusIgnoredForUndefinedField() {
+      Map.SetAlert("Undefined", "Some alert");
+      DoLoop();
+      MockConsoleInfo info = Console.ReadScreen(10, 5, 6);
+      Assert.AreEqual(1, Map.CurrentFieldIndex);
+      info = Console.ReadScreen(2, 10, 20);
+      info.AssertIs("MESSAGE:            ", "777777777FFFFFFFFFFF", "00000000000000000000");
    }
 
    public class LargeTestMap : Map { }

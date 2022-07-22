@@ -34,25 +34,26 @@ internal class BookInfoMap : Map {
    public void DoClose() => Close();
 
    public string Title {
-      get => this["Title"] ?? "";
-      set => this["Title"] = value;
+      get => Get<string>("Title");
+      set => Set("Title", value);
    }
 
    public string SortTitle {
-      get => this["SortTitle"] ?? "";
-      set => this["SortTitle"] = value;
+      get => Get<string>("SortTitle");
+      set => Set("SortTitle", value);
    }
 
    public BookFormat Format {
       get {
-         if (this["FormatPaperback"] != "") {
+         if (Get<bool>("FormatPaperback")) {
             return BookFormat.Paperback;
-         } else if (this["FormatHardCover"] != "") {
+         } else if (Get<bool>("FormatHardCover")) {
             return BookFormat.HardCover;
-         } else if (this["FormatEBook"] != "") {
+         } else if (Get<bool>("FormatEBook")) {
             return BookFormat.EBook;
          }
          return (BookFormat) (-1);
       }
+      set => Set($"Format{value}", true);
    }
 }

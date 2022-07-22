@@ -24,6 +24,8 @@ using System.Collections.Immutable;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
+using Lmpessoa.Mainframe.Fields;
+
 namespace Lmpessoa.Mainframe;
 
 /// <summary>
@@ -45,24 +47,13 @@ public abstract class Map {
    /// <summary>
    /// 
    /// </summary>
-   /// <param name="fieldName"></param>
-   /// <returns></returns>
-   public string? this[string fieldName] {
-      get => GetField(fieldName)?.Value.Replace('\0', ' ').Trim();
-      set => GetField(fieldName)?.SetValue((value ?? "").Trim());
-   }
-
-   /// <summary>
-   /// 
-   /// </summary>
-   public bool IsInWindow { get; private set; }
+   public bool IsPopup { get; private set; }
 
    /// <summary>
    /// 
    /// </summary>
    public void ClearMessage() {
       if (StatusField is not null) {
-         StatusField.Severity = StatusFieldSeverity.None;
          StatusField.SetValue("");
       }
    }
@@ -90,7 +81,7 @@ public abstract class Map {
    /// </summary>
    /// <param name="fieldIndex"></param>
    public void MoveFocus(int fieldIndex) {
-      if (fieldIndex >= 0 && fieldIndex < Fields.Count
+      if (fieldIndex >= 0 && fieldIndex < Fields.Count && fieldIndex != CurrentFieldIndex
             && Fields[fieldIndex].IsFocusable) {
          if (CurrentField is not null) {
             CurrentField.IsDirty = true;
@@ -172,7 +163,7 @@ public abstract class Map {
       if (Application is not null) {
          throw new InvalidOperationException();
       }
-      IsInWindow = false;
+      IsPopup = false;
       CurrentFieldIndex = -1;
       Application.Push(this);
    }
@@ -181,11 +172,11 @@ public abstract class Map {
    /// 
    /// </summary>
    /// <exception cref="InvalidOperationException"></exception>
-   public void ShowWindow() {
+   public void ShowPopup() {
       if (Application is not null) {
          throw new InvalidOperationException();
       }
-      IsInWindow = true;
+      IsPopup = true;
       CurrentFieldIndex = -1;
       Application.Push(this);
    }
@@ -225,6 +216,33 @@ public abstract class Map {
    /// <param name="field"></param>
    protected virtual void OnLostFocus(string fieldName) { }
 
+
+
+   /// <summary>
+   /// 
+   /// </summary>
+   /// <param name="fieldName"></param>
+   /// <returns></returns>
+   protected internal T Get<T>(string fieldName) {
+      if (GetField(fieldName) is not FieldBase field) {
+         throw new ArgumentException($"Field '{fieldName}' is not defined");
+      }
+      return (T) field.GetValue();
+   }
+
+   /// <summary>
+   /// 
+   /// </summary>
+   /// <param name="fieldName"></param>
+   /// <param name="value"></param>
+   /// <returns></returns>
+   protected internal bool Set(string fieldName, object? value) {
+      if (GetField(fieldName) is not FieldBase field) {
+         throw new ArgumentException($"Field '{fieldName}' is not defined");
+      }
+      return field.SetValue(value);
+   }
+
    /// <summary>
    /// 
    /// </summary>
@@ -232,10 +250,10 @@ public abstract class Map {
    /// <param name="visible"></param>
    /// <returns></returns>
    protected internal bool SetFieldVisible(string fieldName, bool visible) {
-      if (GetField(fieldName) is not Field field) {
-         throw new ArgumentException($"{fieldName} is not defined: ", nameof(fieldName));
+      if (GetField(fieldName) is not FieldBase field) {
+         throw new ArgumentException($"Field '{fieldName}' is not defined");
       }
-      if (!field.IsStatus) {
+      if (field != StatusField) {
          field.IsVisible = visible;
          if (field == CurrentField) {
             FocusOnNextField();
@@ -255,7 +273,7 @@ public abstract class Map {
 
    internal IEnumerable<MapPart> Parts { get; private set; } = Array.Empty<MapPart>();
 
-   internal Field? CurrentField
+   internal FieldBase? CurrentField
       => CurrentFieldIndex > -1 && CurrentFieldIndex < Fields.Count ? Fields[CurrentFieldIndex] : null;
 
    internal int CurrentFieldIndex { get; private set; } = -1;
@@ -268,7 +286,7 @@ public abstract class Map {
 
    internal int Left { get; set; }
 
-   internal Field? StatusField { get; private set; }
+   internal Label? StatusField { get; private set; }
 
    internal int Top { get; set; }
 
@@ -279,7 +297,7 @@ public abstract class Map {
 
    internal void DidKeyPress(ConsoleKeyInfo key, ConsoleCursor cursor) {
       bool handled = false;
-      if (CurrentField is Field field) {
+      if (CurrentField is FieldBase field) {
          handled = field.DidKeyPress(key, cursor);
       }
       if (!handled) {
@@ -295,23 +313,23 @@ public abstract class Map {
       }
    }
 
-   internal void DidLostFocus(Field field) {
-      if (!Application.PreserveValues && field.IsFocusable) {
-         field.SetValue(field.Value.ToUpper());
+   internal void DidLostFocus(FieldBase field) {
+      if (!Application.PreserveValues && field is InputFieldBase input) {
+         input.SetInnerValue(input.GetInnerValue().ToUpper());
       }
       OnLostFocus(field.Name);
    }
 
    internal void FocusOnFieldAbove(int cleft, int ctop) {
-      if (CurrentField is Field field) {
-         IEnumerable<Field> fields = Fields.Where(f => f.Top < ctop && f.IsFocusable);
+      if (CurrentField is FieldBase field) {
+         IEnumerable<FieldBase> fields = Fields.Where(f => f.Top < ctop && f.IsFocusable);
          if (fields.Any()) {
             int nextLine = fields.Max(f => f.Top);
-            Field? newField = fields.Where(f => f.Top == nextLine)
-                                    .OrderBy(f => (cleft <= Left + f.Left
-                                       ? Left + f.Left - cleft
-                                       : cleft - Left - f.Left - f.Width))
-                                    .FirstOrDefault();
+            FieldBase? newField = fields.Where(f => f.Top == nextLine)
+                                        .OrderBy(f => (cleft <= Left + f.Left
+                                           ? Left + f.Left - cleft
+                                           : cleft - Left - f.Left - f.Width))
+                                        .FirstOrDefault();
             if (newField is not null) {
                ctop = newField.Top;
                if (Left + newField.Left > cleft) {
@@ -326,15 +344,15 @@ public abstract class Map {
    }
 
    internal void FocusOnFieldBelow(int cleft, int ctop) {
-      if (CurrentField is Field field) {
-         IEnumerable<Field> fields = Fields.Where(f => f.Top > ctop && f.IsFocusable);
+      if (CurrentField is FieldBase field) {
+         IEnumerable<FieldBase> fields = Fields.Where(f => f.Top > ctop && f.IsFocusable);
          if (fields.Any()) {
             int nextLine = fields.Min(f => f.Top);
-            Field? newField = fields.Where(f => f.Top == nextLine)
-                                    .OrderBy(f => (cleft <= Left + f.Left
-                                       ? Left + f.Left - cleft
-                                       : cleft - Left - f.Left - f.Width))
-                                    .FirstOrDefault();
+            FieldBase? newField = fields.Where(f => f.Top == nextLine)
+                                        .OrderBy(f => (cleft <= Left + f.Left
+                                           ? Left + f.Left - cleft
+                                           : cleft - Left - f.Left - f.Width))
+                                        .FirstOrDefault();
             if (newField is not null) {
                ctop = newField.Top;
                if (Left + newField.Left > cleft) {
@@ -349,12 +367,12 @@ public abstract class Map {
    }
 
    internal void FocusOnFieldToLeft() {
-      if (CurrentField is Field field) {
+      if (CurrentField is FieldBase field) {
          int cleft = Left + field.Left;
          int ctop = Top + field.Top;
-         Field? newField = Fields.Where(f => Top + f.Top == ctop && Left + f.Left < cleft && f.IsFocusable)
-                                 .OrderByDescending(f => f.Left)
-                                 .FirstOrDefault();
+         FieldBase? newField = Fields.Where(f => Top + f.Top == ctop && Left + f.Left < cleft && f.IsFocusable)
+                                     .OrderByDescending(f => f.Left)
+                                     .FirstOrDefault();
          if (newField is not null) {
             cleft = Left + newField.Left + newField.Width;
             MoveFocusTo(cleft, ctop);
@@ -363,12 +381,12 @@ public abstract class Map {
    }
 
    internal void FocusOnFieldToRight() {
-      if (CurrentField is Field field) {
+      if (CurrentField is FieldBase field) {
          int cleft = Left + field.Left + field.Width;
          int ctop = Top + field.Top;
-         Field? newField = Fields.Where(f => f.Top == ctop && f.Left > cleft && f.IsFocusable)
-                                 .OrderBy(f => f.Left)
-                                 .FirstOrDefault();
+         FieldBase? newField = Fields.Where(f => f.Top == ctop && f.Left > cleft && f.IsFocusable)
+                                     .OrderBy(f => f.Left)
+                                     .FirstOrDefault();
          if (newField is not null) {
             cleft = Left + newField.Left;
             MoveFocusTo(cleft, ctop);
@@ -378,7 +396,7 @@ public abstract class Map {
 
    internal void MoveFocusTo(int left, int top) {
       Application.SetCursorPosition(left, top);
-      Field? next = Fields.FirstOrDefault(f => f.IsFocusable && top == f.Top + Top
+      FieldBase? next = Fields.FirstOrDefault(f => f.IsFocusable && top == f.Top + Top
                && left >= f.Left + Left && left <= f.Left + Left + f.Width);
       int nextIndex = next is not null ? Fields.IndexOf(next) : -1;
       if (nextIndex != CurrentFieldIndex) {
@@ -395,7 +413,7 @@ public abstract class Map {
 
    internal void Redraw(IConsole console, bool viewDirty) {
       if (viewDirty) {
-         if (IsInWindow) {
+         if (IsPopup) {
             if (Application.BorderStyle != WindowBorder.None) {
                string borderChars = Application.BorderStyle switch {
                   WindowBorder.Square => "┌─┐│└─┘",
@@ -421,20 +439,20 @@ public abstract class Map {
          foreach (MapPart part in Parts) {
             console.Write(part);
             if (part.LineBreak) {
-               if (!IsInWindow && console.WindowWidth - console.CursorLeft > 0) {
+               if (!IsPopup && console.WindowWidth - console.CursorLeft > 0) {
                   console.Write(MapPart.Parse(new string(' ', console.WindowWidth - console.CursorLeft)).First());
                }
                console.SetCursorPosition(Left, console.CursorTop + 1);
             }
          }
-         if (!IsInWindow) {
+         if (!IsPopup) {
             for (int y = console.CursorTop; y < console.WindowHeight; ++y) {
                console.SetCursorPosition(0, y);
                console.Write(MapPart.Parse(new string(' ', console.WindowWidth - console.CursorLeft)).First());
             }
          }
       }
-      foreach (Field field in Fields.Where(f => viewDirty || f.IsDirty)) {
+      foreach (FieldBase field in Fields.Where(f => viewDirty || f.IsDirty)) {
          field.Redraw(console, field == CurrentField);
       }
    }
@@ -453,7 +471,7 @@ public abstract class Map {
    private readonly Dictionary<ConsoleKeyInfo, Action> _actions = new();
 
    private void FocusOnNext(bool reverse) {
-      List<Field> fields = Fields.Where(f => f.IsFocusable).ToList();
+      List<FieldBase> fields = Fields.Where(f => f.IsFocusable).ToList();
       if (!fields.Any()) {
          return;
       }
@@ -469,7 +487,7 @@ public abstract class Map {
       }
    }
 
-   private Field? GetField(string fieldName)
+   private FieldBase? GetField(string fieldName)
       => Fields.FirstOrDefault(f => f.Name == fieldName);
 
    private void InitFromContents(IEnumerable<string> source) {
@@ -477,7 +495,7 @@ public abstract class Map {
       string[] fieldLines = source.Where(l => l.Length > 0 && l[0] is '¬').Select(f => f[1..]).ToArray();
       string[] partLines = source.Where(l => l.Length > 0 && l[0] is '>' or ':').ToArray();
       if (!partLines.Any()) {
-         throw new ArgumentException("Map has no contents", nameof(source));
+         throw new ArgumentException("Map has no contents");
       }
       Width = partLines.Max(l => l.Length) - 1;
       List<MapPart> parts = new();
@@ -501,23 +519,23 @@ public abstract class Map {
          }
          foreach (Match match in Regex.Matches(line, "¬")) {
             if (fieldLines.Length > findex) {
+               FieldBase field = FieldBase.Create(this, match.Index, top, fieldLines[findex]);
                if (findex > 0) {
-                  Field prev = Fields[findex - 1];
+                  FieldBase prev = Fields[findex - 1];
                   if (prev.Top == top && match.Index > prev.Left && match.Index < prev.Left + prev.Width) {
-                     throw new InvalidFieldException("Fields overlap", prev.Left, top);
+                     throw new ArgumentException($"Fields overlap: '{prev.Name}' and '{field.Name}'");
                   }
                }
-               Field field = new(this, match.Index, top, fieldLines[findex]);
                if (Fields.Any(f => f.Name == field.Name)) {
-                  throw new InvalidFieldException($"Duplicate field name {field.Name}", match.Index, top);
+                  throw new ArgumentException($"Duplicate field name: '{field.Name}'");
                }
                line = line.Remove(match.Index, field.Width)
                           .Insert(match.Index, new string(' ', field.Width));
-               if (field.IsStatus) {
+               if (Regex.IsMatch(fieldLines[findex], ":STA[\\[\\(]")) {
                   if (StatusField is not null) {
-                     throw new InvalidFieldException("Duplicate status field", field.Left, field.Top);
+                     throw new ArgumentException($"Duplicate status field: '{field.Name}'");
                   }
-                  StatusField = field;
+                  StatusField = (Label) field;
                }
                Fields.Add(field);
                findex += 1;
@@ -545,14 +563,20 @@ public abstract class Map {
    }
 
    private void SetMessage(string? fieldName, string message, StatusFieldSeverity kind) {
-      Field? field = Fields.FirstOrDefault(f => f.Name == fieldName);
+      FieldBase? field = fieldName is not null ? Fields.FirstOrDefault(f => f.Name == fieldName) : null;
       if (StatusField is not null && (fieldName is null || field is not null)) {
-         if (field is not null) {
-            field.Severity = kind;
+         foreach (FieldBase f in Fields) {
+            f.IsDirty = f.Severity != StatusFieldSeverity.None;
+            f.Severity = StatusFieldSeverity.None;
          }
          StatusField.SetValue(message);
          StatusField.Severity = kind;
          StatusField.IsDirty = true;
+         if (field is not null) {
+            MoveFocus(Fields.IndexOf(field));
+            field.Severity = kind;
+            field.IsDirty = true;
+         }
       }
    }
 }

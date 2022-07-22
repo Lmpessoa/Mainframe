@@ -20,6 +20,8 @@
  * SOFTWARE.
  */
 
+using Lmpessoa.Mainframe.Fields;
+
 namespace Lmpessoa.Mainframe.Tests;
 
 public partial class ApplicationTest {
@@ -382,14 +384,14 @@ public partial class ApplicationTest {
       DoLoop(2);
       Assert.AreEqual(3, Map.CurrentFieldIndex);
       Assert.AreEqual(6, Console.CursorTop);
-      Assert.IsTrue(Map.Fields[3].IsEditable);
-      Assert.AreEqual("/", Map.Fields[3].Mask);
-      Assert.AreEqual("", Map["Summer"]);
-      Assert.IsFalse(Map.Fields[3].IsChecked);
+      Assert.IsInstanceOfType(Map.Fields[3], typeof(CheckField));
+      CheckField checkField = (CheckField) Map.Fields[3];
+      Assert.AreEqual("\0", checkField.GetInnerValue());
+      Assert.IsFalse(Map.Get<bool>("Summer"));
       Console.SendKeys("X");
       DoLoop();
-      Assert.AreEqual("X", Map["Summer"]);
-      Assert.IsTrue(Map.Fields[3].IsChecked);
+      Assert.AreEqual("X", checkField.GetInnerValue());
+      Assert.IsTrue(Map.Get<bool>("Summer"));
       Assert.AreEqual(4, Map.CurrentFieldIndex);
    }
 
@@ -403,14 +405,14 @@ public partial class ApplicationTest {
       DoLoop(2);
       Assert.AreEqual(3, Map.CurrentFieldIndex);
       Assert.AreEqual(6, Console.CursorTop);
-      Assert.IsTrue(Map.Fields[3].IsEditable);
-      Assert.AreEqual("/", Map.Fields[3].Mask);
-      Assert.AreEqual("", Map["Summer"]);
-      Assert.IsFalse(Map.Fields[3].IsChecked);
+      Assert.IsInstanceOfType(Map.Fields[3], typeof(CheckField));
+      CheckField checkField = (CheckField) Map.Fields[3];
+      Assert.AreEqual("\0", checkField.GetInnerValue());
+      Assert.IsFalse(Map.Get<bool>("Summer"));
       Console.SendKeys("/");
       DoLoop();
-      Assert.AreEqual("/", Map["Summer"]);
-      Assert.IsTrue(Map.Fields[3].IsChecked);
+      Assert.AreEqual("/", checkField.GetInnerValue());
+      Assert.IsTrue(Map.Get<bool>("Summer"));
       Assert.AreEqual(4, Map.CurrentFieldIndex);
    }
 
@@ -423,16 +425,16 @@ public partial class ApplicationTest {
       Console.SendKey(ConsoleKey.DownArrow);
       DoLoop(2);
       Assert.AreEqual(3, Map.CurrentFieldIndex);
-      Assert.IsTrue(Map.Fields[3].IsEditable);
-      Assert.AreEqual("/", Map.Fields[3].Mask);
-      Assert.IsTrue(Map.Fields[3].SetValue("X"));
+      Assert.IsInstanceOfType(Map.Fields[3], typeof(CheckField));
+      CheckField checkField = (CheckField) Map.Fields[3];
+      Assert.IsTrue(Map.Set("Summer", "X"));
       Assert.AreEqual(6, Console.CursorTop);
-      Assert.AreEqual("X", Map["Summer"]);
-      Assert.IsTrue(Map.Fields[3].IsChecked);
+      Assert.AreEqual("X", checkField.GetInnerValue());
+      Assert.IsTrue(Map.Get<bool>("Summer"));
       Console.SendKeys(" ");
       DoLoop();
-      Assert.AreEqual("", Map["Summer"]);
-      Assert.IsFalse(Map.Fields[3].IsChecked);
+      Assert.AreEqual("\0", checkField.GetInnerValue());
+      Assert.IsFalse(Map.Get<bool>("Summer"));
       Assert.AreEqual(4, Map.CurrentFieldIndex);
    }
 
@@ -446,28 +448,29 @@ public partial class ApplicationTest {
       DoLoop(2);
       Assert.AreEqual(3, Map.CurrentFieldIndex);
       Assert.AreEqual(6, Console.CursorTop);
-      Assert.IsTrue(Map.Fields[3].IsEditable);
-      Assert.AreEqual("/", Map.Fields[3].Mask);
-      Assert.AreEqual("", Map["Summer"]);
-      Assert.IsFalse(Map.Fields[3].IsChecked);
+      Assert.IsInstanceOfType(Map.Fields[3], typeof(CheckField));
+      CheckField checkField = (CheckField) Map.Fields[3];
+      Assert.AreEqual("\0", checkField.GetInnerValue());
+      Assert.IsFalse(Map.Get<bool>("Summer"));
       Assert.IsFalse(Map.Fields[3].IsDirty);
       Console.SendKeys("A");
       DoLoop();
-      Assert.AreEqual("", Map["Summer"]);
-      Assert.IsFalse(Map.Fields[3].IsChecked);
+      Assert.AreEqual("\0", checkField.GetInnerValue());
+      Assert.IsFalse(Map.Get<bool>("Summer"));
       Assert.IsFalse(Map.Fields[3].IsDirty);
       Assert.AreEqual(3, Map.CurrentFieldIndex);
       Console.SendKeys("-");
       DoLoop();
-      Assert.AreEqual("", Map["Summer"]);
-      Assert.IsFalse(Map.Fields[3].IsChecked);
+      Assert.AreEqual("\0", checkField.GetInnerValue());
+      Assert.IsFalse(Map.Get<bool>("Summer"));
       Assert.IsFalse(Map.Fields[3].IsDirty);
       Assert.AreEqual(3, Map.CurrentFieldIndex);
    }
 
    [TestMethod]
    public void TestPreservingValuesGivenInFields() {
-      Assert.IsTrue(Map.Fields[1].IsEditable);
+      Assert.IsInstanceOfType(Map.Fields[1], typeof(TextField));
+      TextField textField = (TextField) Map.Fields[1];
       Assert.AreEqual(1, Map.CurrentFieldIndex);
       Console.SendKeys("Some value X");
       Console.SendKey(ConsoleKey.Tab);
@@ -476,8 +479,8 @@ public partial class ApplicationTest {
       }
       MockConsoleInfo info = Console.ReadScreen(11, 4, 14);
       Assert.AreEqual("SOME VALUE X__", info.Text);
-      Assert.AreEqual("SOME VALUE X\0\0\0\0\0\0\0\0", Map.Fields[1].Value);
-      Assert.AreEqual("SOME VALUE X", Map["Field"]);
+      Assert.AreEqual("SOME VALUE X\0\0\0\0\0\0\0\0", textField.GetInnerValue());
+      Assert.AreEqual("SOME VALUE X", Map.Get<string>("Field"));
       App.Stop();
       App.PreserveGivenFieldValues();
       App.Start();
@@ -490,8 +493,8 @@ public partial class ApplicationTest {
       }
       info = Console.ReadScreen(11, 4, 14);
       Assert.AreEqual("Some value X__", info.Text);
-      Assert.AreEqual("Some value X\0\0\0\0\0\0\0\0", Map.Fields[1].Value);
-      Assert.AreEqual("Some value X", Map["Field"]);
+      Assert.AreEqual("Some value X\0\0\0\0\0\0\0\0", textField.GetInnerValue());
+      Assert.AreEqual("Some value X", Map.Get<string>("Field"));
    }
 
    [TestMethod]
