@@ -27,11 +27,11 @@ namespace Lmpessoa.Mainframe;
 
 internal sealed class MapPart {
 
-   public string Text { get; init; }
+   public string Text { get; }
 
-   public MapPartColor ForegroundColor { get; init; }
+   public MapPartColor ForegroundColor { get; }
 
-   public MapPartColor BackgroundColor { get; init; }
+   public MapPartColor BackgroundColor { get; }
 
    public bool LineBreak { get; init; }
 
@@ -49,14 +49,17 @@ internal sealed class MapPart {
 
       List<MapPart> result = new();
       for (int i = 0; i < indices.Count && indices[i] < text.Length; ++i) {
-         result.Add(new() {
-            Text = i < indices.Count - 1 ? text[indices[i]..indices[i + 1]] : text[indices[i]..],
-            ForegroundColor = fore[indices[i]] == '+' ? MapPartColor.Highlight : (MapPartColor) "0123456789ABCDEF".IndexOf(fore[indices[i]]),
-            BackgroundColor = fore[indices[i]] == '+' || back[indices[i]] == '+' ? MapPartColor.Highlight 
+         result.Add(new(
+            i < indices.Count - 1 ? text[indices[i]..indices[i + 1]] : text[indices[i]..],
+            fore[indices[i]] == '+' ? MapPartColor.Highlight : (MapPartColor) "0123456789ABCDEF".IndexOf(fore[indices[i]]),
+            fore[indices[i]] == '+' || back[indices[i]] == '+' ? MapPartColor.Highlight
                : (MapPartColor) "0123456789ABCDEF+".IndexOf(back[indices[i]]),
-            LineBreak = i == indices.Count - 1,
-         });
+            i == indices.Count - 1
+         ));
       }
       return result.ToImmutableList();
    }
+
+   private MapPart(string text, MapPartColor foregroundColor, MapPartColor backgroundColor, bool lineBreak)
+      => (Text, ForegroundColor, BackgroundColor, LineBreak) = (text, foregroundColor, backgroundColor, lineBreak);
 }

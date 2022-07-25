@@ -42,9 +42,26 @@ public sealed partial class Application {
    /// </summary>
    /// <param name="code"></param>
    public static void Exit(int code = -1) {
-      if (IsRunning) {
-         _current!.ReturnCode = code;
+      if (_current is not null) {
+         _current.ReturnCode = code;
          _current.Stop();
+      }
+   }
+
+   /// <summary>
+   /// 
+   /// </summary>
+   public static void Logout() {
+      if (_current is not null) {
+         while (_current._maps.Any()) {
+            if (_current._maps.Peek() is LoginMap loginMap) {
+               if (loginMap.Activate() is (int cleft, int ctop)) {
+                  _current.Console.SetCursorPosition(cleft, ctop);
+               }
+               return;
+            }
+            _current._maps.Pop();
+         }
       }
    }
 
@@ -80,7 +97,12 @@ public sealed partial class Application {
    /// </summary>
    public void PreserveGivenFieldValues() {
       AssertAppIsNotRunning();
-      _preserveValues = true;
+      _preserveValues = PreserveValuesLevel.Values;
+   }
+
+   public void PreserveGivenFieldValuesAndDisplay() {
+      AssertAppIsNotRunning();
+      _preserveValues = PreserveValuesLevel.Display;
    }
 
    /// <summary>
@@ -91,7 +113,7 @@ public sealed partial class Application {
       try {
          Start();
          while (IsRunning) {
-            DoLoopStep();
+            LoopStep();
          }
       } finally {
          Stop();
@@ -104,18 +126,28 @@ public sealed partial class Application {
    /// </summary>
    /// <param name="left"></param>
    /// <param name="top"></param>
-   public void SetDefaultWindowPosition(int left, int top) {
+   public void SetDefaultPopupPosition(int left, int top) {
       AssertAppIsNotRunning();
-      _windowPos = (Math.Max(left, -1), Math.Max(top, -1));
+      _popupPos = (Math.Max(left, -1), Math.Max(top, -1));
    }
 
    /// <summary>
    /// 
    /// </summary>
-   /// <param name="maxIdleTime"></param>
-   public void SetMaxIdleTime(uint maxIdleTime) {
+   /// <param name="minutes"></param>
+   public void SetMaxIdleTime(uint minutes)
+      => SetMaxIdleTime(TimeSpan.FromMinutes(minutes));
+
+   /// <summary>
+   /// 
+   /// </summary>
+   /// <param name="span"></param>
+   public void SetMaxIdleTime(TimeSpan span) {
       AssertAppIsNotRunning();
-      _maxIdleTime = maxIdleTime;
+      if (span.Minutes < 1) {
+         throw new ArgumentOutOfRangeException(nameof(span));
+      }
+      MaxIdleTime = span;
    }
 
    /// <summary>
@@ -182,8 +214,8 @@ public sealed partial class Application {
    internal static char PasswordChar
       => _current?._passwordChar ?? '*';
 
-   internal static bool PreserveValues
-      => _current?._preserveValues ?? false;
+   internal static PreserveValuesLevel PreserveValues
+      => _current?._preserveValues ?? PreserveValuesLevel.None;
 
    internal static void SetCursorPosition(int left, int top) {
       if (_current is not null) {
@@ -208,6 +240,25 @@ public sealed partial class Application {
    internal Map? CurrentMap
       => _maps.Any() ? _maps.Peek() : null;
 
+   internal TimeSpan? MaxIdleTime { get; set; } = null;
+
+   internal static void Pop(Map map) {
+      if (_current is not null && _current.CurrentMap == map) {
+         if (map.Closing()) {
+            map.Deactivate(_current.Console.CursorLeft, _current.Console.CursorTop);
+            _current._maps.Pop();
+            map.Closed();
+            if (_current.CurrentMap is Map previous) {
+               if (previous.Activate() is (int cleft, int ctop)) {
+                  _current.Console.SetCursorPosition(cleft, ctop);
+               }
+
+            }
+            _current._viewDirty = true;
+         }
+      }
+   }
+
    internal static void Push(Map map) {
       int left = 0;
       int top = 0;
@@ -216,15 +267,17 @@ public sealed partial class Application {
             throw new InvalidOperationException("Map is too large for the screen");
          }
          if (_current.CurrentMap is Map previous) {
-            previous.CursorLastPosition = (_current.Console.CursorLeft, _current.Console.CursorTop);
-            previous.WillDeactivate();
+            previous.Deactivate(_current.Console.CursorLeft, _current.Console.CursorTop);
+         }
+         if (map is LoginMap && _current._maps.Any(m => m is LoginMap)) {
+            throw new InvalidOperationException("Application can have only one login map");
          }
          if (map.IsPopup) {
-            if (_current._windowPos == (-1, -1)) {
+            if (_current._popupPos == (-1, -1)) {
                left = (_current._consoleSize.Width - map.Width) / 2;
                top = (_current._consoleSize.Height - map.Height) / 2;
             } else {
-               (left, top) = _current._windowPos;
+               (left, top) = _current._popupPos;
                if (_current._border != WindowBorder.None) {
                   left += 1;
                   top += 1;
@@ -234,7 +287,7 @@ public sealed partial class Application {
          map.Top = top;
          map.Left = left;
          map.Application = _current;
-         map.WillActivate();
+         map.Activate();
          map.FocusOnNextField();
          _current._maps.Push(map);
          map.Redraw(_current.Console, true);
@@ -244,23 +297,14 @@ public sealed partial class Application {
       }
    }
 
-   internal static void Pop(Map map) {
-      if (_current is not null && _current.CurrentMap == map) {
-         if (map.ShouldClose()) {
-            map.WillDeactivate();
-            _current._maps.Pop();
-            map.DidClose();
-            if (_current.CurrentMap is Map previous) {
-               (int cleft, int ctop) = previous.CursorLastPosition;
-               _current.Console.SetCursorPosition(cleft, ctop);
-               previous.WillActivate();
-            }
-            _current._viewDirty = true;
+   internal void LoopStep() {
+      if (MaxIdleTime is not null && (DateTime.Now - _inactiveSince) > MaxIdleTime) {
+         Logout();
+         if (!_maps.Any()) {
+            Exit(-21);
+            throw new TimeoutException();
          }
       }
-   }
-
-   internal void DoLoopStep() {
       if (CurrentMap is Map map) {
          HandleIfKeyPressed();
          if (_viewDirty || map.Fields.Any(f => f.IsDirty)) {
@@ -329,21 +373,20 @@ public sealed partial class Application {
    private readonly Map _initialMap;
    private readonly Stack<Map> _maps = new();
 
-   private WindowBorder _border = WindowBorder.Ascii;
+   private PreserveValuesLevel _preserveValues = PreserveValuesLevel.None;
    private (int Width, int Height) _consoleSize = (80, 24);
+   private (int Left, int Top) _popupPos = (-1, -1);
+   private WindowBorder _border = WindowBorder.Ascii;
+   private (int Width, int Height) _initBuffSize;
+   private (int Width, int Height) _initWinSize;
+   private bool _needsRestore = false;
    private bool _enforceSize = false;
+   private char _passwordChar = '*';
+   private bool _insertMode = true;
+   private bool _viewDirty = false;
    private DateTime _inactiveSince;
    private int _initCurSize;
    private bool _initCtrlC;
-   private (int Width, int Height) _initBuffSize;
-   private (int Width, int Height) _initWinSize;
-   private bool _insertMode = true;
-   private bool _viewDirty = false;
-   private uint _maxIdleTime = 0;
-   private char _passwordChar = '*';
-   private bool _preserveValues = false;
-   private bool _needsRestore = false;
-   private (int Left, int Top) _windowPos = (-1, -1);
 
    private IConsole Console { get; }
 
@@ -370,7 +413,7 @@ public sealed partial class Application {
                break;
             default:
                ConsoleCursor cursor = new(Console.CursorLeft, Console.CursorTop);
-               map.DidKeyPress(key, cursor);
+               map.KeyPressed(key, cursor);
                switch (cursor.Mode) {
                   case ConsoleCursorMode.Offset:
                      if (cursor.Offset is (int cleft, int ctop)) {

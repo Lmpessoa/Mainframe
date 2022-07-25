@@ -20,40 +20,10 @@
  * SOFTWARE.
  */
 
-namespace Lmpessoa.Mainframe.Test;
+namespace Lmpessoa.Mainframe;
 
-internal enum BookFormat {
-   Paperback,
-   HardCover,
-   EBook,
-}
-
-internal class BookInfoMap : Map {
-
-   [OnKeyPressed(ConsoleKey.F3)]
-   public void DoClose() => Close();
-
-   public string Title {
-      get => Get<string>("Title");
-      set => Set("Title", value);
-   }
-
-   public string SortTitle {
-      get => Get<string>("SortTitle");
-      set => Set("SortTitle", value);
-   }
-
-   public BookFormat Format {
-      get {
-         if (Get<bool>("FormatPaperback")) {
-            return BookFormat.Paperback;
-         } else if (Get<bool>("FormatHardCover")) {
-            return BookFormat.HardCover;
-         } else if (Get<bool>("FormatEBook")) {
-            return BookFormat.EBook;
-         }
-         return (BookFormat) (-1);
-      }
-      set => Set($"Format{value}", true);
-   }
+internal enum PreserveValuesLevel {
+   None,
+   Values,
+   Display,
 }

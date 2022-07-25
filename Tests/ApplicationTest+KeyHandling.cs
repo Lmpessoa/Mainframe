@@ -272,8 +272,8 @@ public partial class ApplicationTest {
       Assert.AreEqual(1, Map.CurrentFieldIndex);
       Assert.AreEqual(11, Console.CursorLeft);
       Assert.AreEqual(4, Console.CursorTop);
-      Assert.AreEqual(ConsoleKey.Tab, Map.KeyPressed.Key);
-      Assert.AreEqual(ConsoleModifiers.Control, Map.KeyPressed.Modifiers);
+      Assert.AreEqual(ConsoleKey.Tab, Map.KeyWasPressed.Key);
+      Assert.AreEqual(ConsoleModifiers.Control, Map.KeyWasPressed.Modifiers);
    }
 
    [TestMethod]
@@ -286,8 +286,8 @@ public partial class ApplicationTest {
       Assert.AreEqual(1, Map.CurrentFieldIndex);
       Assert.AreEqual(11, Console.CursorLeft);
       Assert.AreEqual(4, Console.CursorTop);
-      Assert.AreEqual(ConsoleKey.DownArrow, Map.KeyPressed.Key);
-      Assert.AreEqual(ConsoleModifiers.Shift, Map.KeyPressed.Modifiers);
+      Assert.AreEqual(ConsoleKey.DownArrow, Map.KeyWasPressed.Key);
+      Assert.AreEqual(ConsoleModifiers.Shift, Map.KeyWasPressed.Modifiers);
    }
 
    [TestMethod]
@@ -300,8 +300,8 @@ public partial class ApplicationTest {
       Assert.AreEqual(1, Map.CurrentFieldIndex);
       Assert.AreEqual(11, Console.CursorLeft);
       Assert.AreEqual(4, Console.CursorTop);
-      Assert.AreEqual(ConsoleKey.Insert, Map.KeyPressed.Key);
-      Assert.AreEqual(ConsoleModifiers.Alt, Map.KeyPressed.Modifiers);
+      Assert.AreEqual(ConsoleKey.Insert, Map.KeyWasPressed.Key);
+      Assert.AreEqual(ConsoleModifiers.Alt, Map.KeyWasPressed.Modifiers);
    }
 
    [TestMethod]
@@ -314,8 +314,8 @@ public partial class ApplicationTest {
       Assert.AreEqual(1, Map.CurrentFieldIndex);
       Assert.AreEqual(11, Console.CursorLeft);
       Assert.AreEqual(4, Console.CursorTop);
-      Assert.AreEqual(ConsoleKey.Delete, Map.KeyPressed.Key);
-      Assert.AreEqual(ConsoleModifiers.Control, Map.KeyPressed.Modifiers);
+      Assert.AreEqual(ConsoleKey.Delete, Map.KeyWasPressed.Key);
+      Assert.AreEqual(ConsoleModifiers.Control, Map.KeyWasPressed.Modifiers);
    }
 
    [TestMethod]
@@ -328,8 +328,8 @@ public partial class ApplicationTest {
       Assert.AreEqual(1, Map.CurrentFieldIndex);
       Assert.AreEqual(11, Console.CursorLeft);
       Assert.AreEqual(4, Console.CursorTop);
-      Assert.AreEqual(ConsoleKey.Backspace, Map.KeyPressed.Key);
-      Assert.AreEqual(ConsoleModifiers.Shift, Map.KeyPressed.Modifiers);
+      Assert.AreEqual(ConsoleKey.Backspace, Map.KeyWasPressed.Key);
+      Assert.AreEqual(ConsoleModifiers.Shift, Map.KeyWasPressed.Modifiers);
    }
 
    [TestMethod]
@@ -342,8 +342,8 @@ public partial class ApplicationTest {
       Assert.AreEqual(1, Map.CurrentFieldIndex);
       Assert.AreEqual(11, Console.CursorLeft);
       Assert.AreEqual(4, Console.CursorTop);
-      Assert.AreEqual(ConsoleKey.Home, Map.KeyPressed.Key);
-      Assert.AreEqual(ConsoleModifiers.Alt, Map.KeyPressed.Modifiers);
+      Assert.AreEqual(ConsoleKey.Home, Map.KeyWasPressed.Key);
+      Assert.AreEqual(ConsoleModifiers.Alt, Map.KeyWasPressed.Modifiers);
    }
 
    [TestMethod]
@@ -356,8 +356,8 @@ public partial class ApplicationTest {
       Assert.AreEqual(1, Map.CurrentFieldIndex);
       Assert.AreEqual(11, Console.CursorLeft);
       Assert.AreEqual(4, Console.CursorTop);
-      Assert.AreEqual(ConsoleKey.End, Map.KeyPressed.Key);
-      Assert.AreEqual(ConsoleModifiers.Control, Map.KeyPressed.Modifiers);
+      Assert.AreEqual(ConsoleKey.End, Map.KeyWasPressed.Key);
+      Assert.AreEqual(ConsoleModifiers.Control, Map.KeyWasPressed.Modifiers);
    }
 
    [TestMethod]
@@ -370,8 +370,8 @@ public partial class ApplicationTest {
       Assert.AreEqual(1, Map.CurrentFieldIndex);
       Assert.AreEqual(11, Console.CursorLeft);
       Assert.AreEqual(4, Console.CursorTop);
-      Assert.AreEqual(ConsoleKey.F3, Map.KeyPressed.Key);
-      Assert.AreEqual((ConsoleModifiers) 0, Map.KeyPressed.Modifiers);
+      Assert.AreEqual(ConsoleKey.F3, Map.KeyWasPressed.Key);
+      Assert.AreEqual((ConsoleModifiers) 0, Map.KeyWasPressed.Modifiers);
    }
 
    [TestMethod]
@@ -484,7 +484,37 @@ public partial class ApplicationTest {
       App.Stop();
       App.PreserveGivenFieldValues();
       App.Start();
-      Map.Fields[1].SetValue("");
+      textField.SetValue("");
+      Console.SendKey(ConsoleKey.Home);
+      Console.SendKeys("Some value X");
+      Console.SendKey(ConsoleKey.Tab);
+      while (Console.KeyAvailable) {
+         DoLoop();
+      }
+      info = Console.ReadScreen(11, 4, 14);
+      Assert.AreEqual("SOME VALUE X__", info.Text);
+      Assert.AreEqual("Some value X\0\0\0\0\0\0\0\0", textField.GetInnerValue());
+      Assert.AreEqual("Some value X", Map.Get<string>("Field"));
+   }
+
+   [TestMethod]
+   public void TestPreservingValuesAndDisplayGivenInFields() {
+      Assert.IsInstanceOfType(Map.Fields[1], typeof(TextField));
+      TextField textField = (TextField) Map.Fields[1];
+      Assert.AreEqual(1, Map.CurrentFieldIndex);
+      Console.SendKeys("Some value X");
+      Console.SendKey(ConsoleKey.Tab);
+      while (Console.KeyAvailable) {
+         DoLoop();
+      }
+      MockConsoleInfo info = Console.ReadScreen(11, 4, 14);
+      Assert.AreEqual("SOME VALUE X__", info.Text);
+      Assert.AreEqual("SOME VALUE X\0\0\0\0\0\0\0\0", textField.GetInnerValue());
+      Assert.AreEqual("SOME VALUE X", Map.Get<string>("Field"));
+      App.Stop();
+      App.PreserveGivenFieldValuesAndDisplay();
+      App.Start();
+      textField.SetValue("");
       Console.SendKey(ConsoleKey.Home);
       Console.SendKeys("Some value X");
       Console.SendKey(ConsoleKey.Tab);

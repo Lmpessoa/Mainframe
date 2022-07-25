@@ -88,9 +88,6 @@ internal sealed class SystemConsole : IConsole {
    public ConsoleKeyInfo ReadKey()
       => Console.ReadKey(true);
 
-   public void ResetColor()
-      => Console.ResetColor();
-
    public void SetBufferSize(int width, int height)
       => Console.SetBufferSize(width, height);
 

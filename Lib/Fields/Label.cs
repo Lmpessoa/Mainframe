@@ -57,7 +57,7 @@ internal class Label : FieldBase {
       StatusFieldSeverity fstatus = Severity;
       FieldState fstate = FieldState.None;
       string fvalue = IsVisible ? _value : new string(' ', Width);
-      if (!Application.PreserveValues) {
+      if (Application.PreserveValues != PreserveValuesLevel.Display) {
          fvalue = fvalue.ToUpper();
       }
       console.Write(fvalue[0..Math.Min(fvalue.Length, Width)], fstate, fstatus);

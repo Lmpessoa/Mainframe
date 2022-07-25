@@ -40,26 +40,28 @@ public partial class ApplicationTest {
       App.Stop();
    }
 
-
+#pragma warning disable CS8618 
+   // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
    private MockConsole Console { get; set; }
 
    private Application App { get; set; }
 
    private TestMap Map { get; set; }
+#pragma warning restore CS8618
 
    protected void DoLoop(int count = 1) {
       for (int i = 0; i < count; ++i) {
-         App.DoLoopStep();
+         App.LoopStep();
       }
    }
 
 
    public sealed class TestMap : Map {
 
-      public ConsoleKeyInfo KeyPressed { get; private set; }
+      public ConsoleKeyInfo KeyWasPressed { get; private set; }
 
-      protected override void OnKeyPressed(ConsoleKeyInfo key) {
-         KeyPressed = key;
+      protected override void DidKeyPress(ConsoleKeyInfo key) {
+         KeyWasPressed = key;
       }
    }
 }

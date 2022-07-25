@@ -53,7 +53,7 @@ internal abstract class InputFieldBase : FieldBase, IFocusableField {
 
    internal virtual bool AcceptsValue(string value) => true;
 
-   internal override bool DidKeyPress(ConsoleKeyInfo key, ConsoleCursor cursor) {
+   internal override bool KeyPressed(ConsoleKeyInfo key, ConsoleCursor cursor) {
       string keyName = Application.SimplifyKeyInfo(key);
       switch (keyName) {
          case "LeftArrow":
@@ -108,7 +108,7 @@ internal abstract class InputFieldBase : FieldBase, IFocusableField {
             fvalue = masked;
          }
       }
-      if (!Application.PreserveValues && !active) {
+      if (Application.PreserveValues != PreserveValuesLevel.Display && !active) {
          fvalue = fvalue.ToUpper();
       }
       console.Write(fvalue[0..Math.Min(fvalue.Length, Width)], fstate, fstatus);

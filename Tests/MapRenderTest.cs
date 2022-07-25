@@ -242,7 +242,7 @@ public sealed class MapRenderTest {
       Assert.IsTrue(map.Set("Field", "01/01"));
       Assert.IsTrue(map.Fields[0].IsDirty);
       Assert.AreEqual("01/01", map.Get<string>("Field"));
-      Assert.AreEqual("01/01\0\0\0", ((TextField)map.Fields[0]).GetInnerValue());
+      Assert.AreEqual("01/01\0\0\0", ((TextField) map.Fields[0]).GetInnerValue());
       map.Fields[0].IsDirty = false;
       Assert.IsFalse(map.Fields[0].IsDirty);
       Assert.IsFalse(map.Set("Field", "01/01"));
@@ -355,7 +355,7 @@ public sealed class MapRenderTest {
       Assert.IsTrue(map.Set("Field", "A-B+C/D E"));
       Assert.IsTrue(map.Fields[0].IsDirty);
       Assert.AreEqual("A-B+C/D E", map.Get<string>("Field"));
-      Assert.IsTrue(map.Set("Field", null));
+      Assert.IsTrue(map.Set("Field", (string?) null));
       Assert.AreEqual("", map.Get<string>("Field"));
    }
 
@@ -369,7 +369,7 @@ public sealed class MapRenderTest {
       Assert.IsTrue(map.Set("Field", "A-B+C/D E"));
       Assert.IsTrue(map.Fields[0].IsDirty);
       Assert.AreEqual("A-B+C/D E", map.Get<string>("Field"));
-      Assert.IsTrue(map.Set("Field", null));
+      Assert.IsTrue(map.Set("Field", (string?) null));
       Assert.AreEqual("", map.Get<string>("Field"));
    }
 
@@ -383,7 +383,7 @@ public sealed class MapRenderTest {
       Assert.IsTrue(map.Set("Field", "A-B+C/D E"));
       Assert.IsTrue(map.Fields[0].IsDirty);
       Assert.AreEqual("A-B+C/D E", map.Get<string>("Field"));
-      Assert.IsTrue(map.Set("Field" ,null));
+      Assert.IsTrue(map.Set("Field", (string?) null));
       Assert.AreEqual("", map.Get<string>("Field"));
    }
 
@@ -396,7 +396,7 @@ public sealed class MapRenderTest {
       Assert.IsTrue(map.Set("Field", "ABCD"));
       Assert.IsTrue(map.Fields[0].IsDirty);
       Assert.AreEqual("ABCD", map.Get<string>("Field"));
-      Assert.IsTrue(map.Set("Field", null));
+      Assert.IsTrue(map.Set("Field", (string?) null));
       Assert.AreEqual("", map.Get<string>("Field"));
    }
 
@@ -455,7 +455,7 @@ public sealed class MapRenderTest {
       Assert.IsFalse(map.F10Pressed);
       ConsoleCursor cursor = new(0, 0);
 
-      map.DidKeyPress(new('\0', key, shift, false, false), cursor);
+      map.KeyPressed(new('\0', key, shift, false, false), cursor);
       Assert.AreEqual(result, map.F10Pressed);
    }
 
@@ -546,7 +546,7 @@ public sealed class MapRenderTest {
 
       public bool F10Pressed { get; set; } = false;
 
-      [CommandKey(ConsoleKey.F10)]
+      [OnKeyPressed(ConsoleKey.F10)]
       public void KeyPressed()
          => F10Pressed = true;
    }

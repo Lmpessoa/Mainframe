@@ -25,7 +25,10 @@ namespace Lmpessoa.Mainframe.Tests;
 [TestClass]
 public sealed class MockConsoleTest {
 
+#pragma warning disable CS8618
+   // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
    private MockConsole console;
+#pragma warning restore CS8618
 
    [TestInitialize]
    public void Initialize() {

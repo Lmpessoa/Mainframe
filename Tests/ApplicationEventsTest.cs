@@ -25,10 +25,13 @@ namespace Lmpessoa.Mainframe.Tests;
 [TestClass]
 public class ApplicationEventsTest {
 
+#pragma warning disable CS8618 
+   // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
    private static Queue<string> EventLog { get; set; }
    private Application _app;
    private MockConsole _console;
    private TestMap _map;
+#pragma warning restore CS8618 
 
    [TestInitialize]
    public void Setup() {
@@ -42,7 +45,7 @@ public class ApplicationEventsTest {
    [TestMethod]
    public void TestMapSetupAndTeardown() {
       _map.Close();
-      _app.DoLoopStep();
+      _app.LoopStep();
       Assert.IsFalse(Application.IsRunning);
       Assert.AreEqual(4, EventLog.Count);
       Assert.AreEqual("Activating Main", EventLog.Dequeue());
@@ -54,16 +57,16 @@ public class ApplicationEventsTest {
    [TestMethod]
    public void TestTwoMapsSetupAndTeardown() {
       Assert.AreSame(_map, _app.CurrentMap);
-      _app.DoLoopStep();
+      _app.LoopStep();
       TestMap second = new("Second");
       second.Show();
-      _app.DoLoopStep();
+      _app.LoopStep();
       Assert.AreSame(second, _app.CurrentMap);
       second.Close();
-      _app.DoLoopStep();
+      _app.LoopStep();
       Assert.AreSame(_map, _app.CurrentMap);
       _map.Close();
-      _app.DoLoopStep();
+      _app.LoopStep();
       Assert.IsFalse(Application.IsRunning);
       Assert.AreEqual(10, EventLog.Count);
       Assert.AreEqual("Activating Main", EventLog.Dequeue());
@@ -80,7 +83,7 @@ public class ApplicationEventsTest {
 
    [TestMethod]
    public void TestExitingApplication() {
-      _app.DoLoopStep();
+      _app.LoopStep();
       Application.Exit();
       Assert.IsFalse(Application.IsRunning);
       Assert.AreEqual(1, EventLog.Count);
@@ -90,9 +93,9 @@ public class ApplicationEventsTest {
    [TestMethod]
    public void TestChangeFields() {
       _console.SendKey(ConsoleKey.Tab);
-      _app.DoLoopStep();
+      _app.LoopStep();
       _map.Close();
-      _app.DoLoopStep();
+      _app.LoopStep();
       Assert.IsFalse(Application.IsRunning);
       Assert.AreEqual(5, EventLog.Count);
       Assert.AreEqual("Activating Main", EventLog.Dequeue());
@@ -105,11 +108,11 @@ public class ApplicationEventsTest {
    [TestMethod]
    public void TestKeyPressed() {
       _console.SendKey(ConsoleKey.F3);
-      _app.DoLoopStep();
+      _app.LoopStep();
       _console.SendKey(KeyModifier.CtrlShift, ConsoleKey.O);
-      _app.DoLoopStep();
+      _app.LoopStep();
       _map.Close();
-      _app.DoLoopStep();
+      _app.LoopStep();
       Assert.IsFalse(Application.IsRunning);
       Assert.AreEqual(6, EventLog.Count);
       Assert.AreEqual("Activating Main", EventLog.Dequeue());
@@ -127,24 +130,24 @@ public class ApplicationEventsTest {
       public TestMap(string name) : base("> ¬ YES   ¬ NO ", "¬OptYes:CHK(1)", "¬OptNo:CHK(1)")
          => _name = name ?? throw new ArgumentNullException(nameof(name));
 
-      protected override void OnActivating()
+      protected override void WillActivate()
          => EventLog.Enqueue($"Activating {_name}");
 
-      protected override void OnClosed()
+      protected override void DidClose()
          => EventLog.Enqueue($"Closed {_name}");
 
-      protected override bool OnClosing() {
+      protected override bool WillClose() {
          EventLog.Enqueue($"Closing {_name}");
          return true;
       }
 
-      protected override void OnDeactivating()
+      protected override void WillDeactivate()
          => EventLog.Enqueue($"Deactivating {_name}");
 
-      protected override void OnKeyPressed(ConsoleKeyInfo key)
+      protected override void DidKeyPress(ConsoleKeyInfo key)
          => EventLog.Enqueue($"Pressed key {Application.SimplifyKeyInfo(key)} on {_name}");
 
-      protected override void OnLostFocus(string fieldName)
+      protected override void DidLostFocus(string fieldName)
          => EventLog.Enqueue($"Field {fieldName} lost focus on {_name}");
    }
 }

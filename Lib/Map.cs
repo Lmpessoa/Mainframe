@@ -85,7 +85,7 @@ public abstract class Map {
             && Fields[fieldIndex].IsFocusable) {
          if (CurrentField is not null) {
             CurrentField.IsDirty = true;
-            DidLostFocus(CurrentField);
+            LostFocus(CurrentField);
          }
          CurrentFieldIndex = fieldIndex;
          if (CurrentField is not null) {
@@ -186,35 +186,35 @@ public abstract class Map {
    /// <summary>
    /// 
    /// </summary>
-   protected virtual void OnActivating() { }
+   protected virtual void WillActivate() { }
 
    /// <summary>
    /// 
    /// </summary>
-   protected virtual void OnClosed() { }
+   protected virtual void DidClose() { }
 
    /// <summary>
    /// 
    /// </summary>
    /// <returns></returns>
-   protected virtual bool OnClosing() => true;
+   protected virtual bool WillClose() => true;
 
    /// <summary>
    /// 
    /// </summary>
-   protected virtual void OnDeactivating() { }
+   protected virtual void WillDeactivate() { }
 
    /// <summary>
    /// 
    /// </summary>
    /// <param name="key"></param>
-   protected virtual void OnKeyPressed(ConsoleKeyInfo key) { }
+   protected virtual void DidKeyPress(ConsoleKeyInfo key) { }
 
    /// <summary>
    /// 
    /// </summary>
    /// <param name="field"></param>
-   protected virtual void OnLostFocus(string fieldName) { }
+   protected virtual void DidLostFocus(string fieldName) { }
 
 
 
@@ -223,6 +223,21 @@ public abstract class Map {
    /// </summary>
    /// <param name="fieldName"></param>
    /// <returns></returns>
+   /// <exception cref="ArgumentException"></exception>
+   protected internal object Get(string fieldName) {
+      if (GetField(fieldName) is not FieldBase field) {
+         throw new ArgumentException($"Field '{fieldName}' is not defined");
+      }
+      return field.GetValue();
+   }
+
+   /// <summary>
+   /// 
+   /// </summary>
+   /// <typeparam name="T"></typeparam>
+   /// <param name="fieldName"></param>
+   /// <returns></returns>
+   /// <exception cref="ArgumentException"></exception>
    protected internal T Get<T>(string fieldName) {
       if (GetField(fieldName) is not FieldBase field) {
          throw new ArgumentException($"Field '{fieldName}' is not defined");
@@ -236,7 +251,8 @@ public abstract class Map {
    /// <param name="fieldName"></param>
    /// <param name="value"></param>
    /// <returns></returns>
-   protected internal bool Set(string fieldName, object? value) {
+   /// <exception cref="ArgumentException"></exception>
+   protected internal bool Set<T>(string fieldName, T? value) {
       if (GetField(fieldName) is not FieldBase field) {
          throw new ArgumentException($"Field '{fieldName}' is not defined");
       }
@@ -249,6 +265,7 @@ public abstract class Map {
    /// <param name="fieldName"></param>
    /// <param name="visible"></param>
    /// <returns></returns>
+   /// <exception cref="ArgumentException"></exception>
    protected internal bool SetFieldVisible(string fieldName, bool visible) {
       if (GetField(fieldName) is not FieldBase field) {
          throw new ArgumentException($"Field '{fieldName}' is not defined");
@@ -278,7 +295,7 @@ public abstract class Map {
 
    internal int CurrentFieldIndex { get; private set; } = -1;
 
-   internal (int, int) CursorLastPosition { get; set; } = (-1, -1);
+   internal (int, int)? _lastPos = null;
 
    internal FieldSet Fields { get; } = new();
 
@@ -292,13 +309,26 @@ public abstract class Map {
 
    internal int Width { get; private set; }
 
-   internal void DidClose()
-      => OnClosed();
+   internal (int, int)? Activate() {
+      WillActivate();
+      return _lastPos;
+   }
 
-   internal void DidKeyPress(ConsoleKeyInfo key, ConsoleCursor cursor) {
+   internal void Closed()
+      => DidClose();
+
+   internal bool Closing()
+      => WillClose();
+
+   internal void Deactivate(int left, int top) {
+      _lastPos = (left, top);
+      WillDeactivate();
+   }
+
+   internal void KeyPressed(ConsoleKeyInfo key, ConsoleCursor cursor) {
       bool handled = false;
       if (CurrentField is FieldBase field) {
-         handled = field.DidKeyPress(key, cursor);
+         handled = field.KeyPressed(key, cursor);
       }
       if (!handled) {
          ConsoleKeyInfo key2 = new('\0', key.Key,
@@ -308,16 +338,16 @@ public abstract class Map {
          if (_actions.ContainsKey(key2)) {
             _actions[key2].Invoke();
          } else {
-            OnKeyPressed(key);
+            DidKeyPress(key);
          }
       }
    }
 
-   internal void DidLostFocus(FieldBase field) {
-      if (!Application.PreserveValues && field is InputFieldBase input) {
+   internal void LostFocus(FieldBase field) {
+      if (Application.PreserveValues == PreserveValuesLevel.None && field is InputFieldBase input) {
          input.SetInnerValue(input.GetInnerValue().ToUpper());
       }
-      OnLostFocus(field.Name);
+      DidLostFocus(field.Name);
    }
 
    internal void FocusOnFieldAbove(int cleft, int ctop) {
@@ -402,7 +432,7 @@ public abstract class Map {
       if (nextIndex != CurrentFieldIndex) {
          if (CurrentField is not null) {
             CurrentField.IsDirty = true;
-            DidLostFocus(CurrentField);
+            LostFocus(CurrentField);
          }
          CurrentFieldIndex = nextIndex;
          if (CurrentField is not null) {
@@ -456,15 +486,6 @@ public abstract class Map {
          field.Redraw(console, field == CurrentField);
       }
    }
-
-   internal bool ShouldClose()
-      => OnClosing();
-
-   internal void WillActivate()
-      => OnActivating();
-
-   internal void WillDeactivate()
-      => OnDeactivating();
 
 
 
@@ -549,7 +570,7 @@ public abstract class Map {
       var methods = this.GetType()
          .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
          .Where(m => m.ReturnType == typeof(void) && m.GetParameters().Length == 0)
-         .Select(m => (m, m.GetCustomAttribute<CommandKeyAttribute>()))
+         .Select(m => (m, m.GetCustomAttribute<OnKeyPressedAttribute>()))
          .Where(e => e.Item2 is not null);
       foreach (var (method, attr) in methods) {
          if (attr is not null) {

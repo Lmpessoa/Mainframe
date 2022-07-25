@@ -233,7 +233,7 @@ public partial class ApplicationTest {
    [TestMethod]
    public void TestShowMapInWindowAtPosition() {
       App.Stop();
-      App.SetDefaultWindowPosition(3, 3);
+      App.SetDefaultPopupPosition(3, 3);
       App.Start();
       TestMap wnd = new();
       wnd.ShowPopup();
@@ -388,12 +388,31 @@ public partial class ApplicationTest {
       Map.SetError("Some error X");
       DoLoop();
       info = Console.ReadScreen(11, 10, 14);
+      Assert.AreEqual("SOME ERROR X  ", info.Text);
+      Assert.AreEqual("Some error X", Map.StatusField.GetValue());
+   }
+
+   [TestMethod]
+   public void TestPreservingValuesAndDisplayGivenInLabels() {
+      Assert.IsNotNull(Map.StatusField);
+      Assert.AreSame(Map.StatusField, Map.Fields[9]);
+      Map.SetError("Some error X");
+      DoLoop();
+      MockConsoleInfo info = Console.ReadScreen(11, 10, 14);
+      Assert.AreEqual("SOME ERROR X  ", info.Text);
+      Assert.AreEqual("Some error X", Map.StatusField.GetValue());
+      App.Stop();
+      App.PreserveGivenFieldValuesAndDisplay();
+      App.Start();
+      Map.SetError("Some error X");
+      DoLoop();
+      info = Console.ReadScreen(11, 10, 14);
       Assert.AreEqual("Some error X  ", info.Text);
       Assert.AreEqual("Some error X", Map.StatusField.GetValue());
    }
 
    [TestMethod]
-   public void TestPreservingValuesGivenInFields2() {
+   public void TestPreservingValuesGivenInFieldsOnFocusLost() {
       Assert.AreEqual(1, Map.CurrentFieldIndex);
       Assert.IsInstanceOfType(Map.Fields[1], typeof(TextField));
       TextField textField = (TextField) Map.Fields[1];
@@ -413,10 +432,17 @@ public partial class ApplicationTest {
       App.Stop();
       App.PreserveGivenFieldValues();
       App.Start();
-      Map.Fields[1].SetValue("Some value X");
+      textField.SetValue("Some value X");
       DoLoop();
       info = Console.ReadScreen(11, 4, 14);
       Assert.AreEqual("Some value X__", info.Text);
+      Assert.AreEqual("Some value X\0\0\0\0\0\0\0\0", textField.GetInnerValue());
+      Assert.AreEqual("Some value X", Map.Get<string>("Field"));
+      Console.SendKey(ConsoleKey.Tab);
+      DoLoop();
+      info = Console.ReadScreen(11, 4, 14);
+      Assert.AreEqual(2, Map.CurrentFieldIndex);
+      Assert.AreEqual("SOME VALUE X__", info.Text);
       Assert.AreEqual("Some value X\0\0\0\0\0\0\0\0", textField.GetInnerValue());
       Assert.AreEqual("Some value X", Map.Get<string>("Field"));
    }

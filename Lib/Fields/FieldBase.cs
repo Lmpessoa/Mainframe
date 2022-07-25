@@ -102,7 +102,7 @@ internal abstract class FieldBase {
    protected internal abstract bool SetValue(object? value);
 
 
-   internal virtual bool DidKeyPress(ConsoleKeyInfo key, ConsoleCursor cursor) => false;
+   internal virtual bool KeyPressed(ConsoleKeyInfo key, ConsoleCursor cursor) => false;
 
    internal abstract void Redraw(IConsole console, bool active);
 }

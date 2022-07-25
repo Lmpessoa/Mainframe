@@ -20,40 +20,49 @@
  * SOFTWARE.
  */
 
-namespace Lmpessoa.Mainframe.Test;
+namespace Lmpessoa.Mainframe;
 
-internal enum BookFormat {
-   Paperback,
-   HardCover,
-   EBook,
+/// <summary>
+/// 
+/// </summary>
+public enum KeyModifier {
+   None = 0,
+   Ctrl = 1,
+   Alt = 2,
+   CtrlAlt = 3,
+   Shift = 4,
+   CtrlShift = 5,
+   AltShift = 6,
+   CtrlAltShift = 7,
 }
 
-internal class BookInfoMap : Map {
+/// <summary>
+/// 
+/// </summary>
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+public sealed class OnKeyPressedAttribute : Attribute {
 
-   [OnKeyPressed(ConsoleKey.F3)]
-   public void DoClose() => Close();
+   /// <summary>
+   /// 
+   /// </summary>
+   /// <param name="key"></param>
+   public OnKeyPressedAttribute(ConsoleKey key):this(KeyModifier.None, key) { }
 
-   public string Title {
-      get => Get<string>("Title");
-      set => Set("Title", value);
-   }
+   /// <summary>
+   /// 
+   /// </summary>
+   /// <param name="modifiers"></param>
+   /// <param name="key"></param>
+   public OnKeyPressedAttribute(KeyModifier modifiers, ConsoleKey key)
+      => (Modifiers, Key) = (modifiers, key);
 
-   public string SortTitle {
-      get => Get<string>("SortTitle");
-      set => Set("SortTitle", value);
-   }
+   /// <summary>
+   /// 
+   /// </summary>
+   public ConsoleKey Key { get; }
 
-   public BookFormat Format {
-      get {
-         if (Get<bool>("FormatPaperback")) {
-            return BookFormat.Paperback;
-         } else if (Get<bool>("FormatHardCover")) {
-            return BookFormat.HardCover;
-         } else if (Get<bool>("FormatEBook")) {
-            return BookFormat.EBook;
-         }
-         return (BookFormat) (-1);
-      }
-      set => Set($"Format{value}", true);
-   }
+   /// <summary>
+   /// 
+   /// </summary>
+   public KeyModifier Modifiers { get; }
 }

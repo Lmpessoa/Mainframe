@@ -114,4 +114,61 @@ public partial class ApplicationTest {
       Assert.AreEqual(120, Console.WindowWidth);
       Assert.AreEqual(30, Console.WindowHeight);
    }
+
+   [TestMethod]
+   public void TestMinimumTimeoutInterval() {
+      App.Stop();
+      Assert.ThrowsException<ArgumentOutOfRangeException>(() => App.SetMaxIdleTime(0));
+      Assert.ThrowsException<ArgumentOutOfRangeException>(() => App.SetMaxIdleTime(TimeSpan.FromSeconds(5)));
+      Assert.ThrowsException<ArgumentOutOfRangeException>(() => App.SetMaxIdleTime(TimeSpan.FromSeconds(55)));
+      App.SetMaxIdleTime(TimeSpan.FromSeconds(60));
+      App.SetMaxIdleTime(1);
+   }
+
+   [TestMethod]
+   public void TestApplicationStopsAfterTimeout() {
+      App.Stop();
+      App.MaxIdleTime = TimeSpan.FromMilliseconds(10); // Workaround because SetMaxIdleTime() will throw an exception
+      App.Start();
+      DoLoop();
+      Assert.IsTrue(Application.IsRunning);
+      Thread.Sleep(10);
+      Console.SendKey(ConsoleKey.Tab);
+      Assert.ThrowsException<TimeoutException>(() => DoLoop());
+      Assert.IsFalse(Application.IsRunning);
+      Assert.AreEqual(-21, App.ReturnCode);
+      Assert.IsTrue(Console.KeyAvailable);
+   }
+
+   [TestMethod]
+   public void TestApplicationLogoutAfterTimeout() {
+      App.Stop();
+      App.MaxIdleTime = TimeSpan.FromMilliseconds(10);
+      App.Start();
+      DoLoop();
+      new TestLoginMap().Show();
+      DoLoop();
+      new TestMap().Show();
+      DoLoop();
+      Assert.IsTrue(Application.IsRunning);
+      Assert.IsInstanceOfType(App.CurrentMap, typeof(TestMap));
+      Thread.Sleep(10);
+      Console.SendKey(ConsoleKey.Tab);
+      DoLoop();
+      Assert.IsTrue(Application.IsRunning);
+      Assert.IsInstanceOfType(App.CurrentMap, typeof(TestLoginMap));
+      Assert.IsFalse(Console.KeyAvailable);
+   }
+
+   [TestMethod]
+   public void TestApplicationCannotHaveTwoLoginMaps() {
+      new TestLoginMap().Show();
+      Map map = new TestLoginMap();
+      Assert.ThrowsException<InvalidOperationException>(() => map.Show());
+   }
+
+   private class TestLoginMap : LoginMap {
+
+      public TestLoginMap() : base("> Login Test Map") { }
+   }
 }
