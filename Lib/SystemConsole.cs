@@ -24,20 +24,9 @@ namespace Lmpessoa.Mainframe;
 
 internal sealed class SystemConsole : IConsole {
 
-   private readonly ConsoleColor _defaultBackground;
-   private readonly ConsoleColor _defaultForeground;
-   private readonly ConsoleColor _fieldForeground;
-   private ConsoleColor _highlightForeground;
-   private ConsoleColor _highlightBackground;
-   private ConsoleColor? _activeBackground;
-
-   public SystemConsole() {
-      Console.ResetColor();
-      _defaultBackground = Console.BackgroundColor;
-      _highlightBackground = _defaultBackground;
-      _defaultForeground = Console.ForegroundColor;
-      _fieldForeground = _defaultForeground + (_defaultForeground > ConsoleColor.Gray ? -8 : 8);
-      _highlightForeground = _fieldForeground;
+   public ConsoleColor BackgroundColor {
+      get => Console.BackgroundColor;
+      set => Console.BackgroundColor = value;
    }
 
    public int BufferWidth
@@ -66,6 +55,11 @@ internal sealed class SystemConsole : IConsole {
       set => Console.CursorVisible = value;
    }
 
+   public ConsoleColor ForegroundColor {
+      get => Console.ForegroundColor;
+      set => Console.ForegroundColor = value;
+   }
+
    public bool KeyAvailable
       => Console.KeyAvailable;
 
@@ -88,6 +82,9 @@ internal sealed class SystemConsole : IConsole {
    public ConsoleKeyInfo ReadKey()
       => Console.ReadKey(true);
 
+   public void ResetColor()
+      => Console.ResetColor();
+
    public void SetBufferSize(int width, int height)
       => Console.SetBufferSize(width, height);
 
@@ -97,58 +94,6 @@ internal sealed class SystemConsole : IConsole {
    public void SetWindowSize(int width, int height)
       => Console.SetWindowSize(width, height);
 
-   public void UseActiveFieldBackground() {
-      Console.ResetColor();
-      ConsoleColor bg = _defaultBackground;
-      bg += (bg > ConsoleColor.Gray ? -8 : 8);
-      _activeBackground = bg;
-   }
-
-   public void UseHighlightColorInBackground(ConsoleColor color)
-      => (_highlightForeground, _highlightBackground) = (_defaultBackground, color);
-
-   public void UseHighlightColorInForeground(ConsoleColor color)
-      => (_highlightForeground, _highlightBackground) = (color, _defaultBackground);
-
-   public void Write(MapPart part) {
-      Console.BackgroundColor = part.BackgroundColor switch {
-         MapPartColor.Default => _defaultBackground,
-         MapPartColor.Highlight => _highlightBackground,
-         _ => (ConsoleColor) (int) part.BackgroundColor,
-      };
-      Console.ForegroundColor = part.ForegroundColor switch {
-         MapPartColor.Default => _defaultForeground,
-         MapPartColor.Highlight => _highlightForeground,
-         _ => (ConsoleColor) (int) part.ForegroundColor,
-      };
-      Console.Write(part.Text);
-   }
-
-   public void Write(string value, FieldState state, StatusFieldSeverity severity) {
-      Console.BackgroundColor = _defaultBackground;
-      Console.ForegroundColor = _fieldForeground;
-      if (state is FieldState.Focused or FieldState.Editing) {
-         Console.BackgroundColor = _activeBackground ?? _defaultBackground;
-      }
-      if (severity is not StatusFieldSeverity.None) {
-         ConsoleColor color = severity switch {
-            StatusFieldSeverity.Success => ConsoleColor.DarkGreen,
-            StatusFieldSeverity.Alert => ConsoleColor.DarkYellow,
-            StatusFieldSeverity.Error => ConsoleColor.DarkRed,
-            _ => _fieldForeground,
-         };
-         ConsoleColor altColor = severity switch {
-            StatusFieldSeverity.Success => ConsoleColor.Green,
-            StatusFieldSeverity.Alert => ConsoleColor.Yellow,
-            StatusFieldSeverity.Error => ConsoleColor.Red,
-            _ => _defaultForeground,
-         };
-         Console.ForegroundColor = (_defaultBackground > ConsoleColor.Gray
-            && _defaultBackground != altColor)
-            || _defaultBackground == color
-            ? altColor
-            : color;
-      }
-      Console.Write(value.Replace('\0', state is FieldState.Editable or FieldState.Editing ? '_' : ' '));
-   }
+   public void Write(string str)
+      => Console.Write(str);
 }

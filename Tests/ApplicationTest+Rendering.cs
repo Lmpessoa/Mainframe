@@ -602,12 +602,14 @@ public partial class ApplicationTest {
       App.Start();
       new LargeTestMap().Show();
       DoLoop();
-      MockConsoleInfo info = Console.ReadScreen(2, 1, 10);
-      Assert.AreEqual("SCREEN 002", info.Text);
+      MockConsoleInfo info = Console.ReadScreen(1, 1, 13);
+      Assert.AreEqual("01 SCREEN 002", info.Text);
       info = Console.ReadScreen(80, 6, 33);
       Assert.AreEqual("^ cropped at width 80 beyond this", info.Text);
-      info = Console.ReadScreen(2, 29, 20);
-      Assert.AreEqual("This line is visible", info.Text);
+      info = Console.ReadScreen(1, 29, 23);
+      Assert.AreEqual("29 This line is visible", info.Text);
+      info = Console.ReadScreen(117, 24, 3);
+      Assert.AreEqual("24 ", info.Text);
    }
 
    [TestMethod]

@@ -24,6 +24,8 @@ namespace Lmpessoa.Mainframe;
 
 internal interface IConsole {
 
+   ConsoleColor BackgroundColor { get; set; }
+
    int BufferWidth { get; }
 
    int BufferHeight { get; }
@@ -35,6 +37,8 @@ internal interface IConsole {
    int CursorSize { get; set; }
 
    bool CursorVisible { get; set; }
+
+   ConsoleColor ForegroundColor { get; set; }
 
    bool KeyAvailable { get; }
 
@@ -48,19 +52,13 @@ internal interface IConsole {
 
    ConsoleKeyInfo ReadKey();
 
+   void ResetColor();
+
    void SetBufferSize(int width, int height);
 
    void SetCursorPosition(int left, int top);
 
    void SetWindowSize(int width, int height);
 
-   void UseActiveFieldBackground();
-
-   void UseHighlightColorInBackground(ConsoleColor color);
-
-   void UseHighlightColorInForeground(ConsoleColor color);
-
-   void Write(MapPart part);
-
-   void Write(string value, FieldState state, StatusFieldSeverity severity);
+   void Write(string str);
 }

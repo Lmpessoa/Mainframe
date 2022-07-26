@@ -104,7 +104,7 @@ internal abstract class FieldBase {
 
    internal virtual bool KeyPressed(ConsoleKeyInfo key, ConsoleCursor cursor) => false;
 
-   internal abstract void Redraw(IConsole console, bool active);
+   internal abstract void Redraw(ConsoleWrapper console, bool active);
 }
 
 internal interface IFocusableField { }

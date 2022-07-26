@@ -27,23 +27,31 @@ namespace Lmpessoa.Mainframe;
 /// </summary>
 internal sealed class MockConsole : IConsole {
 
-   private readonly Queue<ConsoleKeyInfo> _keys = new();
-   private readonly List<string> _buffer = new();
-   private readonly List<string> _fore = new();
-   private readonly List<string> _back = new();
+   private const int DEFAULT_WIDTH = 80;
+   private const int DEFAULT_HEIGHT = 24;
 
-   private char _highlightBack = '0';
-   private char _highlightFore = 'F';
-   private bool _activeBack = false;
+   private readonly Queue<ConsoleKeyInfo> _keys = new();
+   private readonly List<string> _textBuffer = new();
+   private readonly List<string> _foreBuffer = new();
+   private readonly List<string> _backBuffer = new();
+
+   private (int Width, int Height) _size;
+   private char _foreColor = '7';
+   private char _backColor = '0';
 
    public MockConsole()
-      => SetWindowSize(80, 24);
+      => SetWindowSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+
+   public ConsoleColor BackgroundColor {
+      get => CharToColor(_backColor);
+      set => _backColor = ColorToChar(value);
+   }
 
    public int BufferWidth
-      => WindowWidth;
+      => _size.Width;
 
    public int BufferHeight
-      => WindowHeight;
+      => _size.Height;
 
    public int CursorLeft { get; set; } = 0;
 
@@ -53,29 +61,32 @@ internal sealed class MockConsole : IConsole {
 
    public bool CursorVisible { get; set; } = true;
 
+   public ConsoleColor ForegroundColor {
+      get => CharToColor(_foreColor);
+      set => _foreColor = ColorToChar(value);
+   }
+
    public bool KeyAvailable
       => _keys.Any();
 
    public bool TreatControlCAsInput { get; set; } = false;
 
    public int WindowWidth
-      => _buffer[0].Length;
+      => _size.Width;
 
    public int WindowHeight
-      => _buffer.Count;
+      => _size.Height;
 
    public void Clear() {
-      int width = WindowWidth;
-      int height = WindowHeight;
-      _buffer.Clear();
-      _fore.Clear();
-      _back.Clear();
-      while (_buffer.Count < height) {
-         _buffer.Add(new(' ', width));
-         _fore.Add(new('7', width));
-         _back.Add(new('0', width));
+      (int width, int height) = _size;
+      _textBuffer.Clear();
+      _foreBuffer.Clear();
+      _backBuffer.Clear();
+      while (_textBuffer.Count < height) {
+         _textBuffer.Add(new(' ', width));
+         _foreBuffer.Add(new(_foreColor, width));
+         _backBuffer.Add(new(_backColor, width));
       }
-
    }
 
    public ConsoleKeyInfo ReadKey() {
@@ -83,71 +94,51 @@ internal sealed class MockConsole : IConsole {
       return _keys.Dequeue();
    }
 
+   public void ResetColor()
+      => (_backColor, _foreColor) = ('0', '7');
+
    public void SetBufferSize(int width, int height) { }
 
    public void SetCursorPosition(int left, int top)
       => (CursorLeft, CursorTop) = (left, top);
 
    public void SetWindowSize(int width, int height) {
-      while (_buffer.Count != height) {
-         if (_buffer.Count < height) {
-            _buffer.Add(new(' ', width));
-            _fore.Add(new('7', width));
-            _back.Add(new('0', width));
+      int size = width * height;
+      _size = (width, height);
+      while (_textBuffer.Count != height) {
+         if (_textBuffer.Count < height) {
+            _textBuffer.Add(new(' ', width));
+            _foreBuffer.Add(new(_foreColor, width));
+            _backBuffer.Add(new(_backColor, width));
          } else {
-            _buffer.RemoveAt(_buffer.Count - 1);
-            _fore.RemoveAt(_fore.Count - 1);
-            _back.RemoveAt(_back.Count - 1);
+            _textBuffer.RemoveAt(_textBuffer.Count - 1);
+            _foreBuffer.RemoveAt(_foreBuffer.Count - 1);
+            _backBuffer.RemoveAt(_backBuffer.Count - 1);
          }
       }
-      for (int i = 0; i < _buffer.Count; ++i) {
-         string l = _buffer[i];
-         _buffer[i] = l.Length > width
-            ? l[..width]
-            : l + new string(' ', width - l.Length);
-         string f = _fore[i];
-         _fore[i] = f.Length > width
-            ? f[..width]
-            : f + new string('7', width - f.Length);
-         string b = _back[i];
-         _back[i] = b.Length > width
-            ? b[..width]
-            : b + new string('0', width - b.Length);
+      for (int i = 0; i < _textBuffer.Count; ++i) {
+         string l = _textBuffer[i];
+         _textBuffer[i] = l.Length > width ? l[..width] : l + new string(' ', width - l.Length);
+         string f = _foreBuffer[i];
+         _foreBuffer[i] = f.Length > width ? f[..width] : f + new string(_foreColor, width - f.Length);
+         string b = _backBuffer[i];
+         _backBuffer[i] = b.Length > width ? b[..width] : b + new string(_backColor, width - b.Length);
       }
    }
 
-   public void UseActiveFieldBackground()
-      => _activeBack = true;
-
-   public void UseHighlightColorInBackground(ConsoleColor color)
-      => (_highlightBack, _highlightFore) = ("0123456789ABCDEF"[(int) color], '0');
-
-   public void UseHighlightColorInForeground(ConsoleColor color)
-      => (_highlightBack, _highlightFore) = ('0', "0123456789ABCDEF"[(int) color]);
-
-   public void Write(MapPart part) {
-      char _bg = part.BackgroundColor switch {
-         MapPartColor.Default => '0',
-         MapPartColor.Highlight => _highlightBack,
-         _ => "0123456789ABCDEF"[(int) part.BackgroundColor],
-      };
-      char _fg = part.ForegroundColor switch {
-         MapPartColor.Default => '7',
-         MapPartColor.Highlight => _highlightFore,
-         _ => "0123456789ABCDEF"[(int) part.ForegroundColor],
-      };
-      InternalWrite(part.Text, _bg, _fg);
-   }
-
-   public void Write(string value, FieldState state, StatusFieldSeverity severity) {
-      char _bg = state is FieldState.Focused or FieldState.Editing && _activeBack ? '8' : '0';
-      char _fg = severity switch {
-         StatusFieldSeverity.Success => '2',
-         StatusFieldSeverity.Alert => '6',
-         StatusFieldSeverity.Error => '4',
-         _ => 'F',
-      };
-      InternalWrite(value.Replace('\0', state is FieldState.Editable or FieldState.Editing ? '_' : ' '), _bg, _fg);
+   public void Write(string str) {
+      if (str is not null) {
+         _textBuffer[CursorTop] = _textBuffer[CursorTop]
+            .Remove(CursorLeft, str.Length)
+            .Insert(CursorLeft, str);
+         _foreBuffer[CursorTop] = _foreBuffer[CursorTop]
+            .Remove(CursorLeft, str.Length)
+            .Insert(CursorLeft, new string(_foreColor, str.Length));
+         _backBuffer[CursorTop] = _backBuffer[CursorTop]
+            .Remove(CursorLeft, str.Length)
+            .Insert(CursorLeft, new string(_backColor, str.Length));
+         CursorLeft += str.Length;
+      }
    }
 
 
@@ -174,25 +165,15 @@ internal sealed class MockConsole : IConsole {
 
    public MockConsoleInfo ReadScreen(int left, int top, int length)
       => new() {
-         Text = _buffer[top][left..(left + length)],
-         Foreground = _fore[top][left..(left + length)],
-         Background = _back[top][left..(left + length)],
-      };
+            Text = _textBuffer[top][left..(left + length)],
+            Foreground = _foreBuffer[top][left..(left + length)],
+            Background = _backBuffer[top][left..(left + length)],
+         };
 
 
+      private static ConsoleColor CharToColor(char ch)
+      => (ConsoleColor) "0123456789ABCDEF".IndexOf(ch);
 
-   private void InternalWrite(string value, char bgcolor, char fgcolor) {
-      if (value is not null) {
-         _buffer[CursorTop] = _buffer[CursorTop]
-            .Remove(CursorLeft, value.Length)
-            .Insert(CursorLeft, value);
-         _fore[CursorTop] = _fore[CursorTop]
-            .Remove(CursorLeft, value.Length)
-            .Insert(CursorLeft, new string(fgcolor, value.Length));
-         _back[CursorTop] = _back[CursorTop]
-            .Remove(CursorLeft, value.Length)
-            .Insert(CursorLeft, new string(bgcolor, value.Length));
-         CursorLeft += value.Length;
-      }
-   }
+   private static char ColorToChar(ConsoleColor color)
+      => color is >= ConsoleColor.Black and <= ConsoleColor.White ? "0123456789ABCDEF"[(int) color] : '0';
 }

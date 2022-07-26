@@ -89,8 +89,8 @@ internal abstract class InputFieldBase : FieldBase, IFocusableField {
 
    internal abstract bool InputKeyPressed(ConsoleKeyInfo key, ConsoleCursor cursor);
 
-   internal override void Redraw(IConsole console, bool active) {
-      console.SetCursorPosition(Parent.Left + Left, Parent.Top + Top);
+   internal override void Redraw(ConsoleWrapper console, bool active) {
+      console.CursorPosition = (Parent.Left + Left, Parent.Top + Top);
       StatusFieldSeverity fstatus = Severity;
       FieldState fstate = FieldState.None;
       string fvalue;
@@ -111,7 +111,7 @@ internal abstract class InputFieldBase : FieldBase, IFocusableField {
       if (Application.PreserveValues != PreserveValuesLevel.Display && !active) {
          fvalue = fvalue.ToUpper();
       }
-      console.Write(fvalue[0..Math.Min(fvalue.Length, Width)], fstate, fstatus);
+      console.WriteField(fvalue[0..Math.Min(fvalue.Length, Width)], fstate, fstatus);
       IsDirty = false;
    }
 }

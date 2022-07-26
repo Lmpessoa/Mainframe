@@ -52,15 +52,15 @@ internal class Label : FieldBase {
       return false;
    }
 
-   internal override void Redraw(IConsole console, bool active) {
-      console.SetCursorPosition(Parent.Left + Left, Parent.Top + Top);
+   internal override void Redraw(ConsoleWrapper console, bool active) {
+      console.CursorPosition = (Parent.Left + Left, Parent.Top + Top);
       StatusFieldSeverity fstatus = Severity;
       FieldState fstate = FieldState.None;
       string fvalue = IsVisible ? _value : new string(' ', Width);
       if (Application.PreserveValues != PreserveValuesLevel.Display) {
          fvalue = fvalue.ToUpper();
       }
-      console.Write(fvalue[0..Math.Min(fvalue.Length, Width)], fstate, fstatus);
+      console.WriteField(fvalue[0..Math.Min(fvalue.Length, Width)], fstate, fstatus);
       IsDirty = false;
    }
 }

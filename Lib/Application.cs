@@ -55,8 +55,8 @@ public sealed partial class Application {
       if (_current is not null) {
          while (_current._maps.Any()) {
             if (_current._maps.Peek() is LoginMap loginMap) {
-               if (loginMap.Activate() is (int cleft, int ctop)) {
-                  _current.Console.SetCursorPosition(cleft, ctop);
+               if (loginMap.Activate() is (int, int) pos) {
+                  _current.Console.CursorPosition = pos;
                }
                return;
             }
@@ -100,6 +100,9 @@ public sealed partial class Application {
       _preserveValues = PreserveValuesLevel.Values;
    }
 
+   /// <summary>
+   /// 
+   /// </summary>
    public void PreserveGivenFieldValuesAndDisplay() {
       AssertAppIsNotRunning();
       _preserveValues = PreserveValuesLevel.Display;
@@ -157,7 +160,7 @@ public sealed partial class Application {
    /// <param name="height"></param>
    public void SetWindowSize(int width, int height) {
       AssertAppIsNotRunning();
-      _consoleSize = (Math.Max(80, width), Math.Max(24, height));
+      Console.ScreenSize = (width, height);
    }
 
    /// <summary>
@@ -219,7 +222,7 @@ public sealed partial class Application {
 
    internal static void SetCursorPosition(int left, int top) {
       if (_current is not null) {
-         _current.Console.SetCursorPosition(left, top);
+         _current.Console.CursorPosition = (left, top);
       }
    }
 
@@ -233,8 +236,8 @@ public sealed partial class Application {
    }
 
    internal Application(Map initialMap, IConsole console) {
+      Console = new ConsoleWrapper(console ?? throw new ArgumentNullException(nameof(console)));
       _initialMap = initialMap ?? throw new ArgumentNullException(nameof(initialMap));
-      Console = console ?? throw new ArgumentNullException(nameof(console));
    }
 
    internal Map? CurrentMap
@@ -245,12 +248,12 @@ public sealed partial class Application {
    internal static void Pop(Map map) {
       if (_current is not null && _current.CurrentMap == map) {
          if (map.Closing()) {
-            map.Deactivate(_current.Console.CursorLeft, _current.Console.CursorTop);
+            map.Deactivate(_current.Console.CursorPosition);
             _current._maps.Pop();
             map.Closed();
             if (_current.CurrentMap is Map previous) {
-               if (previous.Activate() is (int cleft, int ctop)) {
-                  _current.Console.SetCursorPosition(cleft, ctop);
+               if (previous.Activate() is (int, int) pos) {
+                  _current.Console.CursorPosition = pos;
                }
 
             }
@@ -263,19 +266,19 @@ public sealed partial class Application {
       int left = 0;
       int top = 0;
       if (_current is not null) {
-         if (map.Width > _current._consoleSize.Width || map.Height > _current._consoleSize.Height) {
+         if (map.Width > _current.Console.ScreenSize.Width || map.Height > _current.Console.ScreenSize.Height) {
             throw new InvalidOperationException("Map is too large for the screen");
          }
          if (_current.CurrentMap is Map previous) {
-            previous.Deactivate(_current.Console.CursorLeft, _current.Console.CursorTop);
+            previous.Deactivate(_current.Console.CursorPosition);
          }
          if (map is LoginMap && _current._maps.Any(m => m is LoginMap)) {
             throw new InvalidOperationException("Application can have only one login map");
          }
          if (map.IsPopup) {
             if (_current._popupPos == (-1, -1)) {
-               left = (_current._consoleSize.Width - map.Width) / 2;
-               top = (_current._consoleSize.Height - map.Height) / 2;
+               left = (_current.Console.ScreenSize.Width - map.Width) / 2;
+               top = (_current.Console.ScreenSize.Height - map.Height) / 2;
             } else {
                (left, top) = _current._popupPos;
                if (_current._border != WindowBorder.None) {
@@ -292,7 +295,7 @@ public sealed partial class Application {
          _current._maps.Push(map);
          map.Redraw(_current.Console, true);
          if (map.Fields.Any(f => f.IsFocusable) && map.CurrentField is FieldBase field) {
-            _current.Console.SetCursorPosition(map.Left + field.Left, map.Top + field.Top);
+            _current.Console.CursorPosition = (map.Left + field.Left, map.Top + field.Top);
          }
       }
    }
@@ -308,8 +311,7 @@ public sealed partial class Application {
       if (CurrentMap is Map map) {
          HandleIfKeyPressed();
          if (_viewDirty || map.Fields.Any(f => f.IsDirty)) {
-            int cleft = Console.CursorLeft;
-            int ctop = Console.CursorTop;
+            (int cleft, int ctop) = Console.CursorPosition;
             Console.CursorVisible = false;
             if (_viewDirty) {
                Map? m2 = _maps.LastOrDefault(m => !m.IsPopup);
@@ -320,8 +322,7 @@ public sealed partial class Application {
                map.Redraw(Console, false);
             }
             _viewDirty = false;
-            Console.CursorLeft = cleft;
-            Console.CursorTop = ctop;
+            Console.CursorPosition = (cleft, ctop);
             if (CurrentMap?.CurrentField is FieldBase field && field is InputFieldBase) {
                Console.CursorVisible = true;
             }
@@ -335,16 +336,7 @@ public sealed partial class Application {
       }
       ReturnCode = 0;
       _current = this;
-      _initCtrlC = Console.TreatControlCAsInput;
-      _initCurSize = Console.CursorSize;
-      _initBuffSize = (Console.BufferWidth, Console.BufferHeight);
-      _initWinSize = (Console.WindowWidth, Console.WindowHeight);
-      if (_enforceSize || _consoleSize.Width > Console.WindowWidth || _consoleSize.Height > Console.WindowHeight) {
-         Console.SetWindowSize(_consoleSize.Width, _consoleSize.Height);
-         Console.SetBufferSize(_consoleSize.Width, _consoleSize.Height);
-      }
-      _needsRestore = true;
-      Console.TreatControlCAsInput = true;
+      Console.SaveState(_enforceSize);
       _inactiveSince = DateTime.Now;
       _initialMap.Show();
    }
@@ -354,17 +346,7 @@ public sealed partial class Application {
          map.Application = null;
       }
       _maps.Clear();
-      if (_needsRestore) {
-         Console.Clear();
-         if (_enforceSize || _initWinSize.Width < _consoleSize.Width || _initWinSize.Height < _consoleSize.Height) {
-            Console.SetWindowSize(_initWinSize.Width, _initWinSize.Height);
-            Console.SetBufferSize(_initBuffSize.Width, _initBuffSize.Height);
-         }
-         Console.CursorSize = _initCurSize;
-         Console.CursorVisible = true;
-         Console.TreatControlCAsInput = _initCtrlC;
-      }
-      _needsRestore = false;
+      Console.RestoreState();
       _current = null;
    }
 
@@ -374,21 +356,15 @@ public sealed partial class Application {
    private readonly Stack<Map> _maps = new();
 
    private PreserveValuesLevel _preserveValues = PreserveValuesLevel.None;
-   private (int Width, int Height) _consoleSize = (80, 24);
    private (int Left, int Top) _popupPos = (-1, -1);
    private WindowBorder _border = WindowBorder.Ascii;
-   private (int Width, int Height) _initBuffSize;
-   private (int Width, int Height) _initWinSize;
-   private bool _needsRestore = false;
    private bool _enforceSize = false;
    private char _passwordChar = '*';
    private bool _insertMode = true;
    private bool _viewDirty = false;
    private DateTime _inactiveSince;
-   private int _initCurSize;
-   private bool _initCtrlC;
 
-   private IConsole Console { get; }
+   private ConsoleWrapper Console { get; }
 
    [StackTraceHidden]
    private void AssertAppIsNotRunning() {
@@ -398,9 +374,9 @@ public sealed partial class Application {
    }
 
    private void HandleIfKeyPressed() {
-      if (Console.KeyAvailable && CurrentMap is Map map) {
-         ConsoleKeyInfo key = Console.ReadKey();
-         switch (SimplifyKeyInfo(key)) {
+         ConsoleKeyInfo? key = Console.ReadKey();
+      if (key is not null && CurrentMap is Map map) {
+         switch (SimplifyKeyInfo(key.Value)) {
             case "Tab":
                map.FocusOnNextField();
                break;
@@ -412,13 +388,13 @@ public sealed partial class Application {
                Console.CursorSize = _insertMode ? 1 : 100;
                break;
             default:
-               ConsoleCursor cursor = new(Console.CursorLeft, Console.CursorTop);
-               map.KeyPressed(key, cursor);
+               ConsoleCursor cursor = new(Console.CursorPosition.Left, Console.CursorPosition.Top);
+               map.KeyPressed(key.Value, cursor);
                switch (cursor.Mode) {
                   case ConsoleCursorMode.Offset:
-                     if (cursor.Offset is (int cleft, int ctop)) {
-                        Console.CursorLeft += cleft;
-                        Console.CursorTop += ctop;
+                     if (cursor.Offset is (int oleft, int otop)) {
+                        (int cleft, int ctop) = Console.CursorPosition;
+                        Console.CursorPosition = (cleft + oleft, ctop + otop);
                      }
                      break;
                   case ConsoleCursorMode.FieldNext:
@@ -431,10 +407,10 @@ public sealed partial class Application {
                      map.FocusOnFieldToRight();
                      break;
                   case ConsoleCursorMode.FieldAbove:
-                     map.FocusOnFieldAbove(Console.CursorLeft, Console.CursorTop);
+                     map.FocusOnFieldAbove(Console.CursorPosition);
                      break;
                   case ConsoleCursorMode.FieldBelow:
-                     map.FocusOnFieldBelow(Console.CursorLeft, Console.CursorTop);
+                     map.FocusOnFieldBelow(Console.CursorPosition);
                      break;
                }
                break;

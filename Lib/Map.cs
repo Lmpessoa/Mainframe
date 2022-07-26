@@ -320,8 +320,8 @@ public abstract class Map {
    internal bool Closing()
       => WillClose();
 
-   internal void Deactivate(int left, int top) {
-      _lastPos = (left, top);
+   internal void Deactivate((int, int) position) {
+      _lastPos = position;
       WillDeactivate();
    }
 
@@ -350,47 +350,47 @@ public abstract class Map {
       DidLostFocus(field.Name);
    }
 
-   internal void FocusOnFieldAbove(int cleft, int ctop) {
+   internal void FocusOnFieldAbove((int Left, int Top) pos) {
       if (CurrentField is FieldBase field) {
-         IEnumerable<FieldBase> fields = Fields.Where(f => f.Top < ctop && f.IsFocusable);
+         IEnumerable<FieldBase> fields = Fields.Where(f => f.Top < pos.Top && f.IsFocusable);
          if (fields.Any()) {
             int nextLine = fields.Max(f => f.Top);
             FieldBase? newField = fields.Where(f => f.Top == nextLine)
-                                        .OrderBy(f => (cleft <= Left + f.Left
-                                           ? Left + f.Left - cleft
-                                           : cleft - Left - f.Left - f.Width))
+                                        .OrderBy(f => (pos.Left <= Left + f.Left
+                                           ? Left + f.Left - pos.Left
+                                           : pos.Left - Left - f.Left - f.Width))
                                         .FirstOrDefault();
             if (newField is not null) {
-               ctop = newField.Top;
-               if (Left + newField.Left > cleft) {
-                  cleft = Left + newField.Left;
-               } else if (cleft > Left + newField.Left + newField.Width) {
-                  cleft = Left + newField.Left + newField.Width;
+               pos.Top = newField.Top;
+               if (Left + newField.Left > pos.Left) {
+                  pos.Left = Left + newField.Left;
+               } else if (pos.Left > Left + newField.Left + newField.Width) {
+                  pos.Left = Left + newField.Left + newField.Width;
                }
-               MoveFocusTo(cleft, ctop);
+               MoveFocusTo(pos.Left, pos.Top);
             }
          }
       }
    }
 
-   internal void FocusOnFieldBelow(int cleft, int ctop) {
+   internal void FocusOnFieldBelow((int Left, int Top) pos) {
       if (CurrentField is FieldBase field) {
-         IEnumerable<FieldBase> fields = Fields.Where(f => f.Top > ctop && f.IsFocusable);
+         IEnumerable<FieldBase> fields = Fields.Where(f => f.Top > pos.Top && f.IsFocusable);
          if (fields.Any()) {
             int nextLine = fields.Min(f => f.Top);
             FieldBase? newField = fields.Where(f => f.Top == nextLine)
-                                        .OrderBy(f => (cleft <= Left + f.Left
-                                           ? Left + f.Left - cleft
-                                           : cleft - Left - f.Left - f.Width))
+                                        .OrderBy(f => (pos.Left <= Left + f.Left
+                                           ? Left + f.Left - pos.Left
+                                           : pos.Left - Left - f.Left - f.Width))
                                         .FirstOrDefault();
             if (newField is not null) {
-               ctop = newField.Top;
-               if (Left + newField.Left > cleft) {
-                  cleft = Left + newField.Left;
-               } else if (cleft > Left + newField.Left + newField.Width) {
-                  cleft = Left + newField.Left + newField.Width;
+               pos.Top = newField.Top;
+               if (Left + newField.Left > pos.Left) {
+                  pos.Left = Left + newField.Left;
+               } else if (pos.Left > Left + newField.Left + newField.Width) {
+                  pos.Left = Left + newField.Left + newField.Width;
                }
-               MoveFocusTo(cleft, ctop);
+               MoveFocusTo(pos.Left, pos.Top);
             }
          }
       }
@@ -441,7 +441,7 @@ public abstract class Map {
       }
    }
 
-   internal void Redraw(IConsole console, bool viewDirty) {
+   internal void Redraw(ConsoleWrapper console, bool viewDirty) {
       if (viewDirty) {
          if (IsPopup) {
             if (Application.BorderStyle != WindowBorder.None) {
@@ -452,33 +452,36 @@ public abstract class Map {
                   WindowBorder.Double => "╔═╗║╚═╝",
                   _ => "+-+|+-+",
                };
-               console.SetCursorPosition(Left - 1, Top - 1);
-               console.Write(MapPart.Parse($"{borderChars[0]}{new string(borderChars[1], Width)}{borderChars[2]}").First());
-               console.SetCursorPosition(Left - 1, Top + Height);
-               console.Write(MapPart.Parse($"{borderChars[4]}{new string(borderChars[5], Width)}{borderChars[6]}").First());
+               console.CursorPosition = (Left - 1, Top - 1);
+               console.WritePart(MapPart.Parse($"{borderChars[0]}{new string(borderChars[1], Width)}{borderChars[2]}").First());
+               console.CursorPosition = (Left - 1, Top + Height);
+               console.WritePart(MapPart.Parse($"{borderChars[4]}{new string(borderChars[5], Width)}{borderChars[6]}").First());
                MapPart vertBorder = MapPart.Parse($"{borderChars[3]}{new string(' ', Width)}{borderChars[3]}").First();
                for (int i = 0; i < Height; ++i) {
-                  console.SetCursorPosition(Left - 1, Top + i);
-                  console.Write(vertBorder);
+                  console.CursorPosition = (Left - 1, Top + i);
+                  console.WritePart(vertBorder);
                }
             }
-            console.SetCursorPosition(Left, Top);
+            console.CursorPosition = (Left, Top);
          } else {
-            console.SetCursorPosition(0, 0);
+            console.CursorPosition = (0, 0);
          }
+         (int swidth, int sheight) = console.ScreenSize;
          foreach (MapPart part in Parts) {
-            console.Write(part);
+            console.WritePart(part);
+            (int cleft, int ctop) = console.CursorPosition;
             if (part.LineBreak) {
-               if (!IsPopup && console.WindowWidth - console.CursorLeft > 0) {
-                  console.Write(MapPart.Parse(new string(' ', console.WindowWidth - console.CursorLeft)).First());
+               if (!IsPopup && swidth - cleft > 0) {
+                  console.WritePart(MapPart.Parse(new string(' ', swidth - cleft)).First());
                }
-               console.SetCursorPosition(Left, console.CursorTop + 1);
+               console.CursorPosition = (Left, ctop + 1);
             }
          }
          if (!IsPopup) {
-            for (int y = console.CursorTop; y < console.WindowHeight; ++y) {
-               console.SetCursorPosition(0, y);
-               console.Write(MapPart.Parse(new string(' ', console.WindowWidth - console.CursorLeft)).First());
+            (int cleft, int ctop) = console.CursorPosition;
+            for (int y = ctop; y < sheight; ++y) {
+               console.CursorPosition = (0, y);
+               console.WritePart(MapPart.Parse(new string(' ', swidth - cleft)).First());
             }
          }
       }
