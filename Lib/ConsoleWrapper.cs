@@ -164,4 +164,7 @@ internal sealed class ConsoleWrapper {
       }
       Console.Write(value.Replace('\0', state is FieldState.Editable or FieldState.Editing ? '_' : ' '));
    }
+
+   internal void Clear() =>
+      Console.Clear();
 }

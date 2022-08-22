@@ -80,7 +80,7 @@ internal abstract class InputFieldBase : FieldBase, IFocusableField {
             cursor.MoveLeft(cursor.Left - Parent.Left - Left);
             return true;
          case "End":
-            cursor.MoveRight(cursor.Left - Parent.Left - Left + GetInnerValue().TrimEnd('\0').Length);
+            cursor.MoveRight(Parent.Left + Left + GetInnerValue().TrimEnd('\0').Length - cursor.Left);
             return true;
          default:
             return InputKeyPressed(key, cursor);

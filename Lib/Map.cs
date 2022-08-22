@@ -221,19 +221,6 @@ public abstract class Map {
    /// <summary>
    /// 
    /// </summary>
-   /// <param name="fieldName"></param>
-   /// <returns></returns>
-   /// <exception cref="ArgumentException"></exception>
-   protected internal object Get(string fieldName) {
-      if (GetField(fieldName) is not FieldBase field) {
-         throw new ArgumentException($"Field '{fieldName}' is not defined");
-      }
-      return field.GetValue();
-   }
-
-   /// <summary>
-   /// 
-   /// </summary>
    /// <typeparam name="T"></typeparam>
    /// <param name="fieldName"></param>
    /// <returns></returns>
@@ -471,7 +458,7 @@ public abstract class Map {
             console.WritePart(part);
             (int cleft, int ctop) = console.CursorPosition;
             if (part.LineBreak) {
-               if (!IsPopup && swidth - cleft > 0) {
+               if (!IsPopup && swidth - cleft - 1 > 0) {
                   console.WritePart(MapPart.Parse(new string(' ', swidth - cleft)).First());
                }
                console.CursorPosition = (Left, ctop + 1);

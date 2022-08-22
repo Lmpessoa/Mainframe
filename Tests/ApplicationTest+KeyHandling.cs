@@ -678,4 +678,84 @@ public partial class ApplicationTest {
       Assert.AreEqual(21, Console.CursorLeft);
       Assert.AreEqual(8, Console.CursorTop);
    }
+
+   [TestMethod]
+   public void TestMoveCursorToStartOfField() {
+      Assert.AreEqual(1, Map.CurrentFieldIndex);
+      Assert.AreEqual(11, Console.CursorLeft);
+      Console.CursorLeft += 10;
+      Console.SendKey(ConsoleKey.Home);
+      DoLoop();
+      Assert.AreEqual(1, Map.CurrentFieldIndex);
+      Assert.AreEqual(11, Console.CursorLeft);
+   }
+
+   [TestMethod]
+   public void TestMoveCursorToEndOfEmptyField() {
+      Assert.AreEqual(1, Map.CurrentFieldIndex);
+      Assert.AreEqual(11, Console.CursorLeft);
+      Console.CursorLeft += 10;
+      Console.SendKey(ConsoleKey.End);
+      DoLoop();
+      Assert.AreEqual(1, Map.CurrentFieldIndex);
+      Assert.AreEqual(11, Console.CursorLeft);
+   }
+
+   [TestMethod]
+   public void TestMoveCursorToEndOfHalfField() {
+      Assert.AreEqual(1, Map.CurrentFieldIndex);
+      Map.Set("Field", "Mid Sample");
+      DoLoop();
+      Assert.AreEqual(11, Console.CursorLeft);
+      Console.SendKey(ConsoleKey.End);
+      DoLoop();
+      Assert.AreEqual(1, Map.CurrentFieldIndex);
+      Assert.AreEqual(21, Console.CursorLeft);
+   }
+
+   [TestMethod]
+   public void TestMoveCursorToEndOfField() {
+      Assert.AreEqual(1, Map.CurrentFieldIndex);
+      Map.Set("Field", "Longer Sample Text 1");
+      DoLoop();
+      Assert.AreEqual(11, Console.CursorLeft);
+      Console.SendKey(ConsoleKey.End);
+      DoLoop();
+      Assert.AreEqual(1, Map.CurrentFieldIndex);
+      Assert.AreEqual(31, Console.CursorLeft);
+   }
+
+   [TestMethod]
+   public void TestIgnoreInputAfterEndOfField() {
+      for (int i = 0; i < 20; ++i) {
+         Console.SendKey(ConsoleKey.RightArrow);
+         DoLoop();
+      }
+      Assert.AreEqual(1, Map.CurrentFieldIndex);
+      Assert.AreEqual(31, Console.CursorLeft);
+      Assert.AreEqual("", Map.Get<string>("Field").TrimEnd('\0'));
+      Console.SendKeys("f");
+      DoLoop();
+      Assert.AreEqual(1, Map.CurrentFieldIndex);
+      Assert.AreEqual(31, Console.CursorLeft);
+      Assert.AreEqual("", Map.Get<string>("Field").TrimEnd('\0'));
+   }
+
+   [TestMethod]
+   public void TestAcceptsInputAtEndOfField() {
+      for (int i = 0; i < 19; ++i) {
+         Console.SendKey(ConsoleKey.RightArrow);
+         DoLoop();
+      }
+      Assert.AreEqual(1, Map.CurrentFieldIndex);
+      Assert.AreEqual(4, Console.CursorTop);
+      Assert.AreEqual(30, Console.CursorLeft);
+      Assert.AreEqual("", Map.Get<string>("Field"));
+      Console.SendKeys("f");
+      DoLoop();
+      Assert.AreEqual(2, Map.CurrentFieldIndex);
+      Assert.AreEqual(5, Console.CursorTop);
+      Assert.AreEqual(11, Console.CursorLeft);
+      Assert.AreEqual("F", Map.Get<string>("Field"));
+   }
 }

@@ -337,6 +337,7 @@ public sealed partial class Application {
       ReturnCode = 0;
       _current = this;
       Console.SaveState(_enforceSize);
+      Console.Clear();
       _inactiveSince = DateTime.Now;
       _initialMap.Show();
    }

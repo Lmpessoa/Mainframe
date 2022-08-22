@@ -88,6 +88,9 @@ internal class TextField : InputFieldBase {
       || char.IsSymbol(key.KeyChar))) {
          string value = GetInnerValue();
          int pos = cursor.Left - Parent.Left - Left;
+         if (pos >= Width) {
+            return false;
+         }
          if (Application.IsInsertMode && Mask != "/") {
             if (value[^1] != '\0') {
                return false;
