@@ -18,12 +18,10 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build --configuration Release --no-restore
-    - name: Package
-      run: dotnet pack --configuration Release
     - name: Add Github source
       if: always()
       run: dotnet nuget add source --name "github.com" "https://nuget.pkg.github.com/Lmpessoa/index.json"
     - name: Publish (GitHub)
-      run: dotnet nuget push bin/Release/*.nupkg --api-key ${{ secrets.API_KEY_GITHUB }} --skip-duplicate --source "github.com"
+      run: dotnet nuget push Lib/bin/Release/*.nupkg --api-key ${{ secrets.API_KEY_GITHUB }} --skip-duplicate --source "github.com"
     - name: Publish (NuGet)
-      run: dotnet nuget push bin/Release/*.nupkg --api-key ${{ secrets.API_KEY_NUGET }} --skip-duplicate --source "nuget.org"
+      run: dotnet nuget push Lib/bin/Release/*.nupkg --api-key ${{ secrets.API_KEY_NUGET }} --skip-duplicate --source "nuget.org"
