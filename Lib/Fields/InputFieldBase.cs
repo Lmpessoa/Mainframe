@@ -20,6 +20,7 @@
  * SOFTWARE.
  */
 
+using System.Globalization;
 using System.Text;
 
 namespace Lmpessoa.Mainframe.Fields;
@@ -96,7 +97,7 @@ internal abstract class InputFieldBase : FieldBase {
          }
       }
       if (Application.PreserveValues != PreserveValuesLevel.Display && !active) {
-         fvalue = fvalue.ToUpper();
+         fvalue = fvalue.ToUpper(CultureInfo.CurrentUICulture);
       }
       console.WriteField(fvalue[0..Math.Min(fvalue.Length, Width)], fstate, fstatus);
       IsDirty = false;

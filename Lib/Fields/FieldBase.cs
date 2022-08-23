@@ -54,7 +54,7 @@ internal abstract class FieldBase {
          case "TXT":
          case "PWD":
             return args[0] == '['
-               ? new TextField(name, parent, left, top, int.Parse(args[1..^1]), type == "PWD")
+               ? new TextField(name, parent, left, top, int.Parse(args[1..^1], CultureInfo.InvariantCulture), type == "PWD")
                : type == "PWD" ? new TextField(name, parent, left, top, args.Length - 2, true)
                : new TextField(name, parent, left, top, args[1..^1]);
          case "CHK":

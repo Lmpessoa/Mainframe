@@ -6,21 +6,28 @@
     <Nullable>enable</Nullable>
     <AssemblyName>Lmpessoa.Mainframe</AssemblyName>
     <RootNamespace>Lmpessoa.Mainframe</RootNamespace>
-    <PackageProjectUrl>https://www.github.com/Lmpessoa/Terminal</PackageProjectUrl>
-    <RepositoryUrl>https://www.github.com/Lmpessoa/Terminal</RepositoryUrl>
-    <PackageTags>console;terminal;console-app;terminal-app;</PackageTags>
-    <PackageReadmeFile></PackageReadmeFile>
+    <PackageProjectUrl>https://www.github.com/Lmpessoa/Mainframe</PackageProjectUrl>
+    <RepositoryUrl>https://www.github.com/Lmpessoa/Mainframe</RepositoryUrl>
+    <PackageTags>console;ui;terminal;console-application;terminal-app;mainframe;mainframe-emulator</PackageTags>
+    <PackageReadmeFile>NUGET_README.md</PackageReadmeFile>
     <Copyright>Copyright (c) 2022 Leonardo Pessoa</Copyright>
     <Authors>Leonardo Pessoa</Authors>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Description>Terminal is a simple visual user interface toolkit for developing console .NET applications.</Description>
+    <Description>Mainframe is a simple visual user interface toolkit for developing mainframe-alike console applications in .NET</Description>
     <PackageIcon>Package-Icon.png</PackageIcon>
     <RepositoryType>git</RepositoryType>
     <GenerateDocumentationFile>False</GenerateDocumentationFile>
+    <SignAssembly>False</SignAssembly>
+    <Title>Mainframe</Title>
+    <PackageReleaseNotes>Initial version</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\NUGET_README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
     <None Include="..\Resources\Package-Icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>

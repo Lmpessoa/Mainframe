@@ -161,7 +161,9 @@ internal sealed class MockConsole : IConsole {
    }
 
    public void WaitForEmptyKeyBuffer() {
-      while (_keys.Any()) { }
+      while (_keys.Any()) { 
+         // Just ignore while has keys
+      }
    }
 
    public MockConsoleInfo ReadScreen(int left, int top, int length)

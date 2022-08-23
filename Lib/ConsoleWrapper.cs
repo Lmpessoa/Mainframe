@@ -24,6 +24,7 @@ namespace Lmpessoa.Mainframe;
 
 internal sealed class ConsoleWrapper {
 
+   private const int CONSOLE_GRAY = (int) ConsoleColor.DarkGray;
    private const int MIN_WIDTH = 80;
    private const int MIN_HEIGHT = 24;
 
@@ -49,7 +50,7 @@ internal sealed class ConsoleWrapper {
       _defaultBackground = Console.BackgroundColor;
       _highlightBackground = _defaultBackground;
       _defaultForeground = Console.ForegroundColor;
-      _fieldForeground = _defaultForeground + (_defaultForeground > ConsoleColor.Gray ? -8 : 8);
+      _fieldForeground = _defaultForeground + (_defaultForeground > ConsoleColor.Gray ? -CONSOLE_GRAY : CONSOLE_GRAY);
       _highlightForeground = _fieldForeground;
    }
 
@@ -119,7 +120,7 @@ internal sealed class ConsoleWrapper {
    internal void UseActiveFieldBackground() {
       Console.ResetColor();
       ConsoleColor bg = _defaultBackground;
-      bg += (bg > ConsoleColor.Gray ? -8 : 8);
+      bg += (bg > ConsoleColor.Gray ? -CONSOLE_GRAY : CONSOLE_GRAY);
       _activeBackground = bg;
    }
 
