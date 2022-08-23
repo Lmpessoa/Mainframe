@@ -20,15 +20,28 @@
  * SOFTWARE.
  */
 
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace Lmpessoa.Mainframe.Fields;
 
 internal abstract class FieldBase {
 
-   private bool _visible = true;
+   protected FieldBase(string name, Map parent, int left, int top, int width) {
+      Name = name ?? throw new ArgumentNullException(nameof(name));
+      Parent = parent ?? throw new ArgumentNullException(nameof(parent));
+      Left = left;
+      Top = top;
+      Width = width;
+   }
 
-   public static FieldBase Create(Map parent, int left, int top, string arg) {
+
+   protected internal abstract object GetValue();
+
+   protected internal abstract bool SetValue(object? value);
+
+
+   internal static FieldBase Create(Map parent, int left, int top, string arg) {
       Match match = Regex.Match(arg, "^([A-Za-z][A-Za-z0-9\\-_]*):([A-Z]{3})(\\[\\d+\\]|\\([^\\]]+\\))?$");
       if (!match.Success) {
          throw new ArgumentException($"Invalid field definition: '{arg}'");
@@ -48,10 +61,10 @@ internal abstract class FieldBase {
             if (args.Length > 0 && args[0] == '[') {
                throw new ArgumentException($"Invalid field definition: '{arg}'");
             }
-            return new CheckField(name, parent, left, top, args.Length > 0 ? byte.Parse(args[1..^1]) : 0);
+            return new CheckField(name, parent, left, top, args.Length > 0 ? byte.Parse(args[1..^1], CultureInfo.InvariantCulture) : 0);
          case "ROT":
          case "STA":
-            Label label = new(name, parent, left, top, args[0] == '[' ? int.Parse(args[1..^1]) : args.Length - 2);
+            Label label = new(name, parent, left, top, args[0] == '[' ? int.Parse(args[1..^1], CultureInfo.InvariantCulture) : args.Length - 2);
             if (args[0] == '(') {
                label.SetValue(args[1..^1]);
             }
@@ -61,20 +74,12 @@ internal abstract class FieldBase {
       }
    }
 
-   public FieldBase(string name, Map parent, int left, int top, int width) {
-      Name = name ?? throw new ArgumentNullException(nameof(name));
-      Parent = parent ?? throw new ArgumentNullException(nameof(parent));
-      Left = left;
-      Top = top;
-      Width = width;
-   }
+   internal bool IsDirty { get; set; }
 
-   public bool IsDirty { get; set; } = false;
+   internal virtual bool IsFocusable
+      => IsVisible;
 
-   public bool IsFocusable
-      => this is IFocusableField && IsVisible;
-
-   public bool IsVisible {
+   internal bool IsVisible {
       get => _visible;
       set {
          if (_visible != value) {
@@ -84,27 +89,23 @@ internal abstract class FieldBase {
       }
    }
 
-   public int Left { get; }
-
-   public string Name { get; }
-
-   public Map Parent { get; }
-
-   public StatusFieldSeverity Severity { get; set; } = StatusFieldSeverity.None;
-
-   public int Top { get; }
-
-   public int Width { get; }
-
-
-   protected internal abstract object GetValue();
-
-   protected internal abstract bool SetValue(object? value);
-
-
    internal virtual bool KeyPressed(ConsoleKeyInfo key, ConsoleCursor cursor) => false;
 
+   internal int Left { get; }
+
+   internal string Name { get; }
+
+   internal Map Parent { get; }
+
    internal abstract void Redraw(ConsoleWrapper console, bool active);
+
+   internal StatusFieldSeverity Severity { get; set; } = StatusFieldSeverity.None;
+
+   internal int Top { get; }
+
+   internal int Width { get; }
+
+
+   private bool _visible = true;
 }
 
-internal interface IFocusableField { }

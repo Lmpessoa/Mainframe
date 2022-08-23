@@ -33,17 +33,17 @@ internal class BookInfoMap : Map {
    [OnKeyPressed(ConsoleKey.F3)]
    public void DoClose() => Close();
 
-   public string Title {
+   internal string Title {
       get => Get<string>("Title");
       set => Set("Title", value);
    }
 
-   public string SortTitle {
+   internal string SortTitle {
       get => Get<string>("SortTitle");
       set => Set("SortTitle", value);
    }
 
-   public BookFormat Format {
+   internal BookFormat Format {
       get {
          if (Get<bool>("FormatPaperback")) {
             return BookFormat.Paperback;

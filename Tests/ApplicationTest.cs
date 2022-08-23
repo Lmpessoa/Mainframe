@@ -68,7 +68,7 @@ public partial class ApplicationTest {
 
 internal static class ConsoleInfoExtension {
 
-   public static void AssertIs(this MockConsoleInfo info, string text, string fgcolors, string? bgcolors = null) {
+   internal static void AssertIs(this MockConsoleInfo info, string text, string fgcolors, string? bgcolors = null) {
       Assert.AreEqual(text, info.Text);
       Assert.AreEqual(fgcolors, info.Foreground);
       if (bgcolors is not null) {

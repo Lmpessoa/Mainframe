@@ -24,6 +24,9 @@ namespace Lmpessoa.Mainframe;
 
 internal sealed class ConsoleWrapper {
 
+   private const int MIN_WIDTH = 80;
+   private const int MIN_HEIGHT = 24;
+
    private readonly ConsoleColor _defaultBackground;
    private readonly ConsoleColor _defaultForeground;
    private readonly ConsoleColor _fieldForeground;
@@ -31,7 +34,7 @@ internal sealed class ConsoleWrapper {
    private ConsoleColor _highlightBackground;
    private ConsoleColor? _activeBackground;
 
-   private (int Width, int Height) _screenSize = (80, 24);
+   private (int Width, int Height) _screenSize = (MIN_WIDTH, MIN_HEIGHT);
    private (int Width, int Height) _initBuffSize;
    private (int Width, int Height) _initWinSize;
    private bool? _enforceSize = null;
@@ -40,7 +43,7 @@ internal sealed class ConsoleWrapper {
 
    private IConsole Console { get; }
 
-   public ConsoleWrapper(IConsole console) {
+   internal ConsoleWrapper(IConsole console) {
       Console = console ?? throw new ArgumentNullException(nameof(console));
       Console.ResetColor();
       _defaultBackground = Console.BackgroundColor;
@@ -50,25 +53,25 @@ internal sealed class ConsoleWrapper {
       _highlightForeground = _fieldForeground;
    }
 
-   public (int Left, int Top) CursorPosition {
+   internal (int Left, int Top) CursorPosition {
       get => (Console.CursorLeft, Console.CursorTop);
       set => Console.SetCursorPosition(value.Left, value.Top);
    }
 
-   public int CursorSize {
+   internal int CursorSize {
       get => Console.CursorSize;
       set => Console.CursorSize = value;
    }
 
-   public bool CursorVisible {
+   internal bool CursorVisible {
       get => Console.CursorVisible;
       set => Console.CursorVisible = value;
    }
 
-   public (int Width, int Height) ScreenSize {
+   internal (int Width, int Height) ScreenSize {
       get => _screenSize;
       set {
-         _screenSize = (Math.Max(80, value.Width), Math.Max(24, value.Height));
+         _screenSize = (Math.Max(MIN_WIDTH, value.Width), Math.Max(MIN_HEIGHT, value.Height));
          if (_enforceSize ?? false) {
             Console.SetWindowSize(_screenSize.Width, _screenSize.Height);
             Console.SetBufferSize(_screenSize.Width, _screenSize.Height);
@@ -76,10 +79,13 @@ internal sealed class ConsoleWrapper {
       }
    }
 
-   public ConsoleKeyInfo? ReadKey()
+   internal void Clear() =>
+      Console.Clear();
+
+   internal ConsoleKeyInfo? ReadKey()
       => Console.KeyAvailable ? Console.ReadKey() : null;
 
-   public void RestoreState() {
+   internal void RestoreState() {
       if (_enforceSize is not null) {
          Console.ResetColor();
          Console.Clear();
@@ -94,7 +100,7 @@ internal sealed class ConsoleWrapper {
       _enforceSize = null;
    }
 
-   public void SaveState(bool enforceSize) {
+   internal void SaveState(bool enforceSize) {
       if (_enforceSize is null) {
          _initCtrlC = Console.TreatControlCAsInput;
          _initCurSize = Console.CursorSize;
@@ -110,20 +116,20 @@ internal sealed class ConsoleWrapper {
       }
    }
 
-   public void UseActiveFieldBackground() {
+   internal void UseActiveFieldBackground() {
       Console.ResetColor();
       ConsoleColor bg = _defaultBackground;
       bg += (bg > ConsoleColor.Gray ? -8 : 8);
       _activeBackground = bg;
    }
 
-   public void UseHighlightColorInBackground(ConsoleColor color)
+   internal void UseHighlightColorInBackground(ConsoleColor color)
       => (_highlightForeground, _highlightBackground) = (_defaultBackground, color);
 
-   public void UseHighlightColorInForeground(ConsoleColor color)
+   internal void UseHighlightColorInForeground(ConsoleColor color)
       => (_highlightForeground, _highlightBackground) = (color, _defaultBackground);
 
-   public void WritePart(MapPart part) {
+   internal void WritePart(MapPart part) {
       Console.BackgroundColor = part.BackgroundColor switch {
          MapPartColor.Default => _defaultBackground,
          MapPartColor.Highlight => _highlightBackground,
@@ -137,7 +143,7 @@ internal sealed class ConsoleWrapper {
       Console.Write(part.Text);
    }
 
-   public void WriteField(string value, FieldState state, StatusFieldSeverity severity) {
+   internal void WriteField(string value, FieldState state, StatusFieldSeverity severity) {
       Console.BackgroundColor = _defaultBackground;
       Console.ForegroundColor = _fieldForeground;
       if (state is FieldState.Focused or FieldState.Editing) {
@@ -164,7 +170,4 @@ internal sealed class ConsoleWrapper {
       }
       Console.Write(value.Replace('\0', state is FieldState.Editable or FieldState.Editing ? '_' : ' '));
    }
-
-   internal void Clear() =>
-      Console.Clear();
 }

@@ -20,16 +20,13 @@
  * SOFTWARE.
  */
 
+using System.Globalization;
+
 namespace Lmpessoa.Mainframe.Fields;
 
 internal class Label : FieldBase {
 
    private string _value;
-
-   public Label(string name, Map parent, int left, int top, int width)
-      : base(name, parent, left, top, width) {
-      _value = new string(' ', width);
-   }
 
    protected internal override object GetValue() => _value.Trim();
 
@@ -52,13 +49,21 @@ internal class Label : FieldBase {
       return false;
    }
 
+   internal Label(string name, Map parent, int left, int top, int width)
+      : base(name, parent, left, top, width) {
+      _value = new string(' ', width);
+   }
+
+   internal override bool IsFocusable
+      => false;
+
    internal override void Redraw(ConsoleWrapper console, bool active) {
       console.CursorPosition = (Parent.Left + Left, Parent.Top + Top);
       StatusFieldSeverity fstatus = Severity;
       FieldState fstate = FieldState.None;
       string fvalue = IsVisible ? _value : new string(' ', Width);
       if (Application.PreserveValues != PreserveValuesLevel.Display) {
-         fvalue = fvalue.ToUpper();
+         fvalue = fvalue.ToUpper(CultureInfo.CurrentUICulture);
       }
       console.WriteField(fvalue[0..Math.Min(fvalue.Length, Width)], fstate, fstatus);
       IsDirty = false;

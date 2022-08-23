@@ -20,28 +20,12 @@
  * SOFTWARE.
  */
 
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace Lmpessoa.Mainframe.Fields;
 
 internal class TextField : InputFieldBase {
-
-   public TextField(string name, Map parent, int left, int top, int width, bool @protected)
-      : base(name, parent, left, top, width, @protected)
-      => Mask = null;
-
-   public TextField(string name, Map parent, int left, int top, string mask)
-      : base(name, parent, left, top, mask.Length, false) {
-      if (!Regex.IsMatch(mask, "^[aAxX\\*9 ]+$")) {
-         throw new ArgumentException("Invalid mask value", nameof(mask));
-      }
-      Mask = mask.ToUpper();
-   }
-
-   public bool IsProtected
-      => _protected;
-
-   public string? Mask { get; }
 
    protected internal override object GetValue()
       => GetInnerValue().Replace('\0', ' ').Trim();
@@ -58,6 +42,18 @@ internal class TextField : InputFieldBase {
          SetInnerValue(text);
       }
       return IsDirty;
+   }
+
+   internal TextField(string name, Map parent, int left, int top, int width, bool @protected)
+      : base(name, parent, left, top, width, @protected)
+      => Mask = null;
+
+   internal TextField(string name, Map parent, int left, int top, string mask)
+      : base(name, parent, left, top, mask.Length, false) {
+      if (!Regex.IsMatch(mask, "^[aAxX\\*9 ]+$")) {
+         throw new ArgumentException("Invalid mask value", nameof(mask));
+      }
+      Mask = mask.ToUpper(CultureInfo.CurrentUICulture);
    }
 
    internal override bool AcceptsValue(string value) {
@@ -127,4 +123,9 @@ internal class TextField : InputFieldBase {
       }
       return false;
    }
+
+   internal bool IsProtected
+      => _protected;
+
+   internal string? Mask { get; }
 }

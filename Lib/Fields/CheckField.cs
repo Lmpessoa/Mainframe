@@ -22,15 +22,9 @@
 
 namespace Lmpessoa.Mainframe.Fields;
 
-internal class CheckField : InputFieldBase { 
+internal class CheckField : InputFieldBase {
 
-   private bool _checked = false;
-
-   public CheckField(string name, Map parent, int left, int top, int group)
-      : base(name, parent, left, top, 1, false)
-      => Group = Math.Max(0, group);
-
-   public int Group { get; }
+   private bool _checked;
 
    protected internal override object GetValue() => _checked;
 
@@ -55,6 +49,12 @@ internal class CheckField : InputFieldBase {
       AdjustGroupValues();
       return true;
    }
+
+   internal CheckField(string name, Map parent, int left, int top, int group)
+      : base(name, parent, left, top, 1, false)
+      => Group = Math.Max(0, group);
+
+   internal int Group { get; }
 
    internal override bool InputKeyPressed(ConsoleKeyInfo key, ConsoleCursor cursor) {
       if (key.Modifiers is 0 or ConsoleModifiers.Shift && key.KeyChar is ' ' or '/' or 'x' or 'X') {

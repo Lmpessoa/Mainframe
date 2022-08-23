@@ -53,7 +53,7 @@ public sealed class MapFieldsTest {
       Assert.AreEqual(-1, map.CurrentFieldIndex);
    }
 
-   private static readonly string[] NO_FIELDS = new string[] { "> NO FIELDS HERE" };
+   private static readonly string[] NO_FIELDS = new[] { "> NO FIELDS HERE" };
 
    [TestMethod]
    public void TestIgnoresMoveFocusNoFields() {
@@ -82,7 +82,7 @@ public sealed class MapFieldsTest {
       Assert.AreEqual(-1, map.CurrentFieldIndex);
    }
 
-   private static readonly string[] LABEL_ONLY = new string[] { ">  ¬XXXXXXX  ", "¬Label:ROT[8]" };
+   private static readonly string[] LABEL_ONLY = new[] { ">  ¬XXXXXXX  ", "¬Label:ROT[8]" };
 
    [TestMethod]
    public void TestIgnoresMoveFocusIfNotField() {
@@ -111,7 +111,7 @@ public sealed class MapFieldsTest {
       Assert.AreEqual(-1, map.CurrentFieldIndex);
    }
 
-   private static readonly string[] SINGLE_FIELD = new string[] { ">  ¬XXXXXXX  ", "¬Field:INP[8]" };
+   private static readonly string[] SINGLE_FIELD = new[] { ">  ¬XXXXXXX  ", "¬Field:INP[8]" };
 
    [TestMethod]
    public void TestMoveFocusToSelfSingleField() {
@@ -149,7 +149,7 @@ public sealed class MapFieldsTest {
       Assert.AreEqual(0, map.CurrentFieldIndex);
    }
 
-   private static readonly string[] FIELD_AND_LABEL = new string[] { ">  ¬XXXXXXX ¬XXXXXXX ", "¬Field:INP[8]", "¬Label:ROT[8]" };
+   private static readonly string[] FIELD_AND_LABEL = new[] { ">  ¬XXXXXXX ¬XXXXXXX ", "¬Field:INP[8]", "¬Label:ROT[8]" };
 
    [TestMethod]
    public void TestMoveFocusNextToSelfFieldAndLabel() {
@@ -169,7 +169,7 @@ public sealed class MapFieldsTest {
       Assert.AreEqual(0, map.CurrentFieldIndex);
    }
 
-   private static readonly string[] TWO_FIELDS = new string[] {
+   private static readonly string[] TWO_FIELDS = new[] {
       "> ¬XXXXXXX ", "> ¬XXXXXXX ", "¬Field1:INP[8]", "¬Field2:INP[8]",
    };
 
@@ -220,7 +220,7 @@ public sealed class MapFieldsTest {
       Assert.AreEqual(1, map.CurrentFieldIndex);
    }
 
-   private static readonly string[] THREE_FIELDS = new string[] {
+   private static readonly string[] THREE_FIELDS = new[] {
       "> ¬XXXXXXX ", "> ¬XXXXXXX ", "> ¬XXXXXXX ", "¬Field1:INP[8]", "¬Field2:INP[8]", "¬Field3:INP[8]"
    };
 

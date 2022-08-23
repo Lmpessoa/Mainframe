@@ -21,6 +21,7 @@
  */
 
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -31,12 +32,12 @@ namespace Lmpessoa.Mainframe;
 /// <summary>
 /// 
 /// </summary>
-public abstract class Map {
+public class Map {
 
    /// <summary>
    /// 
    /// </summary>
-   public Map() {
+   protected Map() {
       using Stream? stream = GetType().Assembly.GetManifestResourceStream($"{GetType().FullName}.map");
       if (stream is not null) {
          using StreamReader reader = new(stream);
@@ -269,7 +270,7 @@ public abstract class Map {
 
 
 
-   internal Map(params string[] contents) {
+   private protected Map(params string[] contents) {
       InitFromContents(contents);
    }
 
@@ -521,10 +522,10 @@ public abstract class Map {
          string foreMarkup = "";
          string backMarkup = "";
          if (i + 1 < partLines.Length && partLines[i + 1][0] == ':') {
-            foreMarkup = partLines[i + 1][1..].ToUpper().TrimEnd();
+            foreMarkup = partLines[i + 1][1..].ToUpper(CultureInfo.CurrentUICulture).TrimEnd();
             i += 1;
             if (i + 1 < partLines.Length && partLines[i + 1][0] == ':') {
-               backMarkup = partLines[i + 1][1..].ToUpper().TrimEnd();
+               backMarkup = partLines[i + 1][1..].ToUpper(CultureInfo.CurrentUICulture).TrimEnd();
                i += 1;
             }
          }
@@ -558,7 +559,7 @@ public abstract class Map {
       Height = top;
       Parts = parts.ToImmutableArray();
       var methods = this.GetType()
-         .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+         .GetMethods(BindingFlags.Public | BindingFlags.Instance)
          .Where(m => m.ReturnType == typeof(void) && m.GetParameters().Length == 0)
          .Select(m => (m, m.GetCustomAttribute<OnKeyPressedAttribute>()))
          .Where(e => e.Item2 is not null);

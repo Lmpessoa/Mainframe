@@ -27,15 +27,15 @@ namespace Lmpessoa.Mainframe;
 
 internal sealed class MapPart {
 
-   public string Text { get; }
+   internal string Text { get; }
 
-   public MapPartColor ForegroundColor { get; }
+   internal MapPartColor ForegroundColor { get; }
 
-   public MapPartColor BackgroundColor { get; }
+   internal MapPartColor BackgroundColor { get; }
 
-   public bool LineBreak { get; init; }
+   internal bool LineBreak { get; init; }
 
-   public static IEnumerable<MapPart> Parse(string text, string fore = "", string back = "") {
+   internal static IEnumerable<MapPart> Parse(string text, string fore = "", string back = "") {
       if (fore.Length < text.Length) {
          fore += new string(' ', text.Length - fore.Length);
       }

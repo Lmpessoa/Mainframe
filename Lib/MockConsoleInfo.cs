@@ -22,11 +22,14 @@
 
 namespace Lmpessoa.Mainframe;
 
-internal struct MockConsoleInfo {
+internal struct MockConsoleInfo : IEquatable<MockConsoleInfo> {
 
    public string Text { get; init; }
 
    public string Foreground { get; init; }
 
    public string Background { get; init; }
+
+   public bool Equals(MockConsoleInfo other)
+      => Text == other.Text && Foreground == other.Foreground && Background == other.Background;
 }

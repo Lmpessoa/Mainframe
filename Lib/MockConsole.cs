@@ -53,9 +53,9 @@ internal sealed class MockConsole : IConsole {
    public int BufferHeight
       => _size.Height;
 
-   public int CursorLeft { get; set; } = 0;
+   public int CursorLeft { get; set; }
 
-   public int CursorTop { get; set; } = 0;
+   public int CursorTop { get; set; }
 
    public int CursorSize { get; set; } = 1;
 
@@ -69,7 +69,7 @@ internal sealed class MockConsole : IConsole {
    public bool KeyAvailable
       => _keys.Any();
 
-   public bool TreatControlCAsInput { get; set; } = false;
+   public bool TreatControlCAsInput { get; set; }
 
    public int WindowWidth
       => _size.Width;
@@ -90,7 +90,9 @@ internal sealed class MockConsole : IConsole {
    }
 
    public ConsoleKeyInfo ReadKey() {
-      while (!_keys.Any()) { }
+      while (!_keys.Any()) { 
+         // Wait for an available key
+      }
       return _keys.Dequeue();
    }
 
@@ -103,7 +105,6 @@ internal sealed class MockConsole : IConsole {
       => (CursorLeft, CursorTop) = (left, top);
 
    public void SetWindowSize(int width, int height) {
-      int size = width * height;
       _size = (width, height);
       while (_textBuffer.Count != height) {
          if (_textBuffer.Count < height) {

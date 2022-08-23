@@ -25,9 +25,9 @@ namespace Lmpessoa.Mainframe;
 /// <summary>
 /// 
 /// </summary>
-public abstract class LoginMap : Map {
+public class LoginMap : Map {
 
-   public LoginMap() { }
+   protected LoginMap() { }
 
-   internal LoginMap(params string[] contents) : base(contents) { }
+   private protected LoginMap(params string[] contents) : base(contents) { }
 }

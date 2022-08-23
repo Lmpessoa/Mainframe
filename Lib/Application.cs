@@ -29,7 +29,7 @@ namespace Lmpessoa.Mainframe;
 /// <summary>
 /// 
 /// </summary>
-public sealed partial class Application {
+public sealed class Application {
 
    /// <summary>
    /// 
@@ -82,7 +82,7 @@ public sealed partial class Application {
    /// <summary>
    /// 
    /// </summary>
-   public int ReturnCode { get; private set; } = 0;
+   public int ReturnCode { get; private set; }
 
    /// <summary>
    /// 
@@ -246,19 +246,14 @@ public sealed partial class Application {
    internal TimeSpan? MaxIdleTime { get; set; } = null;
 
    internal static void Pop(Map map) {
-      if (_current is not null && _current.CurrentMap == map) {
-         if (map.Closing()) {
-            map.Deactivate(_current.Console.CursorPosition);
-            _current._maps.Pop();
-            map.Closed();
-            if (_current.CurrentMap is Map previous) {
-               if (previous.Activate() is (int, int) pos) {
-                  _current.Console.CursorPosition = pos;
-               }
-
-            }
-            _current._viewDirty = true;
+      if (_current is not null && _current.CurrentMap == map && map.Closing()) {
+         map.Deactivate(_current.Console.CursorPosition);
+         _current._maps.Pop();
+         map.Closed();
+         if (_current.CurrentMap is Map previous && previous.Activate() is (int, int) pos) {
+            _current.Console.CursorPosition = pos;
          }
+         _current._viewDirty = true;
       }
    }
 
@@ -304,7 +299,7 @@ public sealed partial class Application {
       if (MaxIdleTime is not null && (DateTime.Now - _inactiveSince) > MaxIdleTime) {
          Logout();
          if (!_maps.Any()) {
-            Exit(-21);
+            Exit(TIMEOUT_RETURN_CODE);
             throw new TimeoutException();
          }
       }
@@ -351,7 +346,9 @@ public sealed partial class Application {
       _current = null;
    }
 
-   private static Application? _current = null;
+   private const int TIMEOUT_RETURN_CODE = -21;
+
+   private static Application? _current;
 
    private readonly Map _initialMap;
    private readonly Stack<Map> _maps = new();
@@ -359,11 +356,11 @@ public sealed partial class Application {
    private PreserveValuesLevel _preserveValues = PreserveValuesLevel.None;
    private (int Left, int Top) _popupPos = (-1, -1);
    private WindowBorder _border = WindowBorder.Ascii;
-   private bool _enforceSize = false;
    private char _passwordChar = '*';
    private bool _insertMode = true;
-   private bool _viewDirty = false;
    private DateTime _inactiveSince;
+   private bool _enforceSize;
+   private bool _viewDirty;
 
    private ConsoleWrapper Console { get; }
 
@@ -375,7 +372,7 @@ public sealed partial class Application {
    }
 
    private void HandleIfKeyPressed() {
-         ConsoleKeyInfo? key = Console.ReadKey();
+      ConsoleKeyInfo? key = Console.ReadKey();
       if (key is not null && CurrentMap is Map map) {
          switch (SimplifyKeyInfo(key.Value)) {
             case "Tab":
@@ -389,34 +386,40 @@ public sealed partial class Application {
                Console.CursorSize = _insertMode ? 1 : 100;
                break;
             default:
-               ConsoleCursor cursor = new(Console.CursorPosition.Left, Console.CursorPosition.Top);
-               map.KeyPressed(key.Value, cursor);
-               switch (cursor.Mode) {
-                  case ConsoleCursorMode.Offset:
-                     if (cursor.Offset is (int oleft, int otop)) {
-                        (int cleft, int ctop) = Console.CursorPosition;
-                        Console.CursorPosition = (cleft + oleft, ctop + otop);
-                     }
-                     break;
-                  case ConsoleCursorMode.FieldNext:
-                     map.FocusOnNextField();
-                     break;
-                  case ConsoleCursorMode.FieldLeft:
-                     map.FocusOnFieldToLeft();
-                     break;
-                  case ConsoleCursorMode.FieldRight:
-                     map.FocusOnFieldToRight();
-                     break;
-                  case ConsoleCursorMode.FieldAbove:
-                     map.FocusOnFieldAbove(Console.CursorPosition);
-                     break;
-                  case ConsoleCursorMode.FieldBelow:
-                     map.FocusOnFieldBelow(Console.CursorPosition);
-                     break;
-               }
+               HandleKeyPressedInMap(key.Value, map);
                break;
          }
          _inactiveSince = DateTime.Now;
+      }
+   }
+
+   private void HandleKeyPressedInMap(ConsoleKeyInfo key, Map map) {
+      ConsoleCursor cursor = new(Console.CursorPosition.Left, Console.CursorPosition.Top);
+      map.KeyPressed(key, cursor);
+      switch (cursor.Mode) {
+         case ConsoleCursorMode.Offset:
+            if (cursor.Offset is (int oleft, int otop)) {
+               (int cleft, int ctop) = Console.CursorPosition;
+               Console.CursorPosition = (cleft + oleft, ctop + otop);
+            }
+            break;
+         case ConsoleCursorMode.FieldNext:
+            map.FocusOnNextField();
+            break;
+         case ConsoleCursorMode.FieldLeft:
+            map.FocusOnFieldToLeft();
+            break;
+         case ConsoleCursorMode.FieldRight:
+            map.FocusOnFieldToRight();
+            break;
+         case ConsoleCursorMode.FieldAbove:
+            map.FocusOnFieldAbove(Console.CursorPosition);
+            break;
+         case ConsoleCursorMode.FieldBelow:
+            map.FocusOnFieldBelow(Console.CursorPosition);
+            break;
+         default:
+            throw new InvalidOperationException();
       }
    }
 }
