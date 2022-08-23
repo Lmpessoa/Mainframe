@@ -6,8 +6,8 @@
     <Nullable>enable</Nullable>
     <AssemblyName>Lmpessoa.Mainframe</AssemblyName>
     <RootNamespace>Lmpessoa.Mainframe</RootNamespace>
-    <PackageProjectUrl>https://www.github.com/Lmpessoa/Mainframe</PackageProjectUrl>
-    <RepositoryUrl>https://www.github.com/Lmpessoa/Mainframe</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/Lmpessoa/Mainframe</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Lmpessoa/Mainframe</RepositoryUrl>
     <PackageTags>console;ui;terminal;console-application;terminal-app;mainframe;mainframe-emulator</PackageTags>
     <PackageReadmeFile>NUGET_README.md</PackageReadmeFile>
     <Copyright>Copyright (c) 2022 Leonardo Pessoa</Copyright>
