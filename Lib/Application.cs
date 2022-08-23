@@ -138,13 +138,19 @@ public sealed class Application {
    /// 
    /// </summary>
    /// <param name="minutes"></param>
-   public void SetMaxIdleTime(uint minutes)
-      => SetMaxIdleTime(TimeSpan.FromMinutes(minutes));
+   /// <exception cref="ArgumentOutOfRangeException"></exception>
+   public void SetMaxIdleTime(int minutes) {
+      if (minutes < 1) {
+         throw new ArgumentOutOfRangeException(nameof(minutes));
+      }
+      SetMaxIdleTime(TimeSpan.FromMinutes(minutes));
+   }
 
    /// <summary>
    /// 
    /// </summary>
    /// <param name="span"></param>
+   /// <exception cref="ArgumentOutOfRangeException"></exception>
    public void SetMaxIdleTime(TimeSpan span) {
       AssertAppIsNotRunning();
       if (span.Minutes < 1) {
