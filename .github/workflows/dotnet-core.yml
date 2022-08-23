@@ -3,6 +3,7 @@ name: Publish packages
 on:
   release:
     types: [published]
+  workflow_dispatch: {}
 
 jobs:
   build:
@@ -16,7 +17,7 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build --configuration Release --no-restore
     - name: Publish (NuGet)
       uses: brandedoutcast/publish-nuget@v2  
       with:   
