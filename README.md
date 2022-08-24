@@ -1,3 +1,5 @@
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/76533991d6f54a9dbc7393ef0e87fcbd)](https://www.codacy.com/gh/Lmpessoa/Mainframe/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Lmpessoa/Mainframe&amp;utm_campaign=Badge_Grade)
+
 <img alt="Mainframe icon" src="Resources/Header.svg" height="120">
 
 Mainframe is a simple visual user interface toolkit for developing mainframe-alike console applications in .NET
