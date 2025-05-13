@@ -30,7 +30,7 @@ Thus here is Mainframe, a small framework intended to help creating console base
 
 ## Usage
 
-Using the Mainframe toolkit is really easy and simple as I outlined. However, I thought it would be best if it was given it's own separate documentation. You can see how to start using it [here](/Lmpessoa/Mainframe/wiki).
+Using the Mainframe toolkit is really easy and simple as I outlined. However, I thought it would be best if it was given it's own separate documentation. You can see how to start using it [here](https://github.com/Lmpessoa/Mainframe/wiki).
 
 ## Contributing
 
